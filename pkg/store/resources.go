@@ -71,14 +71,18 @@ func NewResource(obj runtime.Object, restmapper meta.RESTMapper) (*Resources, er
 	}
 	// 赋值
 	retObj := &Resources{obj: o, objbytes: b}
+	// name namespace
 	retObj.Name = o.GetName()
 	retObj.NameSpace = o.GetNamespace()
+	// gvr gvk
 	retObj.Group = gvk.Group
 	retObj.Version = gvk.Version
 	retObj.Kind = gvk.Kind
 	retObj.Resource = mapping.Resource.Resource
+	// 版本号
 	retObj.ResourceVersion = o.GetResourceVersion()
 	retObj.CreateAt = o.GetCreationTimestamp().Time
+
 	retObj.Uid = string(o.GetUID())
 
 	return retObj, nil
@@ -101,10 +105,9 @@ func (r *Resources) prepare() {
 	r.Object = string(objJson)
 }
 
-// FIXME: 这里不应该直接由 informer 触发，应该先放入一个工作队列，由队列触发
-
 func (r *Resources) Add(db *gorm.DB) error {
 	r.prepare()
+	// 处理冲突方法：当 uid 发现存在时，只更新 resource_version update_at 字段
 	return db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "uid"}},
 		DoUpdates: clause.Assignments(
@@ -118,7 +121,12 @@ func (r *Resources) Add(db *gorm.DB) error {
 func (r *Resources) Update(db *gorm.DB) error {
 	r.prepare()
 	r.UpdateAt = time.Now()
+	// 当 hash值不与库中的相等时，才进行更新
 	return db.Where("uid=?", r.Uid).Where("hash!=?", r.Hash).Updates(r).Error
+}
+
+func (r *Resources) Delete(db *gorm.DB) error {
+	return db.Where("uid=?", r.Uid).Delete(r).Error
 }
 
 func (*Resources) TableName() string {

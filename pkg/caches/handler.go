@@ -34,12 +34,13 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 			// 不断由队列中获取元素处理
 			obj, err := r.Pop()
 			if err != nil {
-				klog.Errorf("work queue pop error: %s", err)
+				klog.Errorf("work queue pop error: %s\n", err)
 				continue
 			}
 
 			// 如果自己的业务逻辑发生问题，可以重新放回队列。
 			if err = r.handleObject(obj); err != nil {
+				klog.Errorf("handle obj from work queue error: %s\n", err)
 				// 重新入列
 				_ = r.ReQueue(obj)
 			} else {
@@ -52,17 +53,20 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 
 // HandleObject 处理 work queue 传入对象
 func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
-	klog.Infof("handler [%s] object from work queue", obj.EventType)
+	klog.Infof("handler [%s] object from work queue\n", obj.EventType)
 	res, err := store.NewResource(obj.Object, r.RestMapper)
 	if err != nil {
+		klog.Errorf("new resource [%s] object error: %s\n", obj.EventType, err)
 		return err
 	}
+
 	// 区分传入的事件，并进行相应处理
 	switch obj.EventType {
 	case store.AddEvent:
 
 		err = res.Add(r.DB)
 		if err != nil {
+			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
 			return err
 		}
 
@@ -71,12 +75,18 @@ func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
 
 		err = res.Update(r.DB)
 		if err != nil {
+			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
 			return err
 		}
 
 		return nil
 	case store.DeleteEvent:
-		klog.Warning("not support yet...")
+
+		err = res.Delete(r.DB)
+		if err != nil {
+			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
+			return err
+		}
 	}
 	return nil
 }
