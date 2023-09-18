@@ -17,11 +17,12 @@ import (
 func hashObject(data []byte) string {
 	has := md5.Sum(data)
 	return fmt.Sprintf("%x", has)
-
 }
 
 // Resources 放入表中的模型
 type Resources struct {
+	// 区分集群
+	Cluster string
 	// obj Unstructured 结构体，不用于入库
 	obj *unstructured.Unstructured `gorm:"-"`
 	// objbytes []byte 对象，不用于入库，需要获取 yaml or json 格式使用
@@ -39,20 +40,17 @@ type Resources struct {
 	Version  string `gorm:"column:version"`
 	Resource string `gorm:"column:resource"`
 	Kind     string `gorm:"column:kind"`
-
-	//-- uid是唯一的 。owner 不一定有
-	Owner string `gorm:"column:owner"`
-	//-- end uid and owner
+	// owner
+	Owner  string `gorm:"column:owner"`
 	Object string `gorm:"column:object"`
-
-	// ----时间相关
+	// 时间相关
 	CreateAt time.Time `gorm:"column:create_at"`
 	UpdateAt time.Time `gorm:"column:update_at"`
 	DeleteAt time.Time `gorm:"column:delete_at"`
 	//--UpdateAt DeleteAt 插入时 不需要赋值
 }
 
-func NewResource(obj runtime.Object, restmapper meta.RESTMapper) (*Resources, error) {
+func NewResource(obj runtime.Object, restmapper meta.RESTMapper, clusterName string) (*Resources, error) {
 	o := &unstructured.Unstructured{}
 	b, err := yaml.Marshal(obj)
 	if err != nil {
@@ -71,6 +69,7 @@ func NewResource(obj runtime.Object, restmapper meta.RESTMapper) (*Resources, er
 	}
 	// 赋值
 	retObj := &Resources{obj: o, objbytes: b}
+	retObj.Cluster = clusterName
 	// name namespace
 	retObj.Name = o.GetName()
 	retObj.NameSpace = o.GetNamespace()

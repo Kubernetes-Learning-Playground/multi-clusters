@@ -15,6 +15,7 @@ var (
 )
 
 type QueueResource struct {
+	//ClusterName string
 	Object    runtime.Object
 	EventType EventType
 }

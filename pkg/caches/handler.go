@@ -16,6 +16,7 @@ type ResourceHandler struct {
 	RestMapper meta.RESTMapper
 	// Queue 工作队列接口
 	store.Queue
+	clusterName string
 }
 
 // Start 启动工作队列
@@ -53,8 +54,8 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 
 // HandleObject 处理 work queue 传入对象
 func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
-	klog.Infof("handler [%s] object from work queue\n", obj.EventType)
-	res, err := store.NewResource(obj.Object, r.RestMapper)
+	klog.Infof("[%s] handler [%s] object from work queue\n", r.clusterName, obj.EventType)
+	res, err := store.NewResource(obj.Object, r.RestMapper, r.clusterName)
 	if err != nil {
 		klog.Errorf("new resource [%s] object error: %s\n", obj.EventType, err)
 		return err
@@ -66,7 +67,7 @@ func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
 
 		err = res.Add(r.DB)
 		if err != nil {
-			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
+			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
 
@@ -75,7 +76,7 @@ func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
 
 		err = res.Update(r.DB)
 		if err != nil {
-			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
+			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
 
@@ -84,32 +85,30 @@ func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
 
 		err = res.Delete(r.DB)
 		if err != nil {
-			klog.Errorf("[%s] object error: %s\n", obj.EventType, err)
+			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
 	}
 	return nil
 }
 
-func NewResourceHandler(DB *gorm.DB, restMapper meta.RESTMapper) *ResourceHandler {
+func NewResourceHandler(DB *gorm.DB, restMapper meta.RESTMapper, clusterName string) *ResourceHandler {
 	return &ResourceHandler{
-		DB:         DB,
-		RestMapper: restMapper,
-		Queue:      store.NewWorkQueue(5),
+		DB:          DB,
+		RestMapper:  restMapper,
+		Queue:       store.NewWorkQueue(5),
+		clusterName: clusterName,
 	}
 }
 
 func (r *ResourceHandler) OnAdd(obj interface{}, isInInitialList bool) {
-	klog.Info("add resource...")
 	if o, ok := obj.(runtime.Object); ok {
 		rr := &store.QueueResource{Object: o, EventType: store.AddEvent}
 		r.Push(rr)
 	}
-
 }
 
 func (r *ResourceHandler) OnUpdate(oldObj, newObj interface{}) {
-	klog.Info("update resource...")
 	if o, ok := newObj.(runtime.Object); ok {
 		rr := &store.QueueResource{Object: o, EventType: store.UpdateEvent}
 		r.Push(rr)
@@ -117,7 +116,6 @@ func (r *ResourceHandler) OnUpdate(oldObj, newObj interface{}) {
 }
 
 func (r *ResourceHandler) OnDelete(obj interface{}) {
-	klog.Info("delete resource...")
 	if o, ok := obj.(runtime.Object); ok {
 		rr := &store.QueueResource{Object: o, EventType: store.DeleteEvent}
 		r.Push(rr)
