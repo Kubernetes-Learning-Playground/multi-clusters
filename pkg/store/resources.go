@@ -95,7 +95,7 @@ func (r *Resources) prepare() {
 	}
 	// 获取md5值
 	r.Hash = hashObject(r.objbytes)
-	// 这个部分改掉了  --数据库字段改成了JSON
+	// 数据库为 Json类型
 	//r.Object = string(r.objbytes)
 	objJson, err := yaml.YAMLToJSON(r.objbytes)
 	if err != nil {

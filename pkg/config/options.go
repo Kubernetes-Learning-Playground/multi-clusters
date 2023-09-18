@@ -1,5 +1,7 @@
 package config
 
+import "gorm.io/gorm"
+
 type Options struct {
 	User       string
 	Password   string
@@ -9,4 +11,8 @@ type Options struct {
 	Port       int
 	HealthPort int
 	DebugMode  bool
+}
+
+type Dependencies struct {
+	DB *gorm.DB
 }
