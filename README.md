@@ -10,7 +10,7 @@
 3. 支持跳过tls认证
 4. 实现 http server 支持查询接口
 
-![]()
+![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
 ### 配置文件
 - **重要** 配置文件可参考config.yaml中配置，调用方只需要关注配置文件中的内容即可。
