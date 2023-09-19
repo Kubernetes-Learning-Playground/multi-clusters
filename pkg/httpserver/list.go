@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -49,7 +50,11 @@ func (list *ListService) List(name, namespace, cluster string, labels map[string
 	//	}
 	//}
 
-	err := db.Limit(limit).Order("create_at desc").Find(&ret).Error
+	if limit != 0 {
+		db = db.Limit(limit)
+	}
+
+	err := db.Order("create_at desc").Find(&ret).Error
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +82,7 @@ func (r *ResourceController) List(c *gin.Context) {
 	gvrParam := c.Query("gvr")
 	name := c.DefaultQuery("name", "")
 	ns := c.DefaultQuery("namespace", "")
+	limit := c.DefaultQuery("limit", "10")
 	cluster := c.DefaultQuery("cluster", "")
 	var labels map[string]string // 默认是nil
 	if labelsQuery, ok := c.GetQueryMap("labels"); ok {
@@ -88,9 +94,9 @@ func (r *ResourceController) List(c *gin.Context) {
 	if gvr.Empty() {
 		panic("error gvr")
 	}
-
+	ll, _ := strconv.Atoi(limit)
 	// 获取列表
-	list, err := r.ListService.List(name, ns, cluster, labels, gvr, 10)
+	list, err := r.ListService.List(name, ns, cluster, labels, gvr, ll)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err})
 		return
@@ -105,7 +111,7 @@ func parseIntoGvr(gvr string) schema.GroupVersionResource {
 	list := strings.Split(gvr, ".")
 	ret := schema.GroupVersionResource{}
 	if len(list) < 2 {
-		panic("gvr input error, please input like format apps.v1.deployments or v1.pods")
+		panic("gvr input error, please input like format apps.v1.deployments or v1.resource")
 	}
 	// 区分
 	if len(list) == 2 {

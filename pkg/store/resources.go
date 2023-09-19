@@ -129,5 +129,5 @@ func (r *Resources) Delete(db *gorm.DB) error {
 }
 
 func (*Resources) TableName() string {
-	return "resources"
+	return "resource"
 }

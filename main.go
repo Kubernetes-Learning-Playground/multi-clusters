@@ -65,7 +65,7 @@ func main() {
 
 	errC := make(chan error)
 
-	// 6 启动httpServer
+	// 启动httpServer
 	go func() {
 		klog.Info("httpserver start!! ")
 		if err = httpserver.HttpServer(ctx, opt, dp); err != nil {

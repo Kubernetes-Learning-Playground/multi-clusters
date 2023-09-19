@@ -73,14 +73,14 @@ func (mc *MultiClusterHandler) Start(ctx context.Context) {
 
 }
 
-// parseGVR 解析并指定资源对象 "apps/v1/deployments" "core/v1/pods" "batch/v1/jobs"
+// parseGVR 解析并指定资源对象 "apps/v1/deployments" "core/v1/resource" "batch/v1/jobs"
 func parseGVR(gvr string) schema.GroupVersionResource {
 	var group, version, resource string
 	gvList := strings.Split(gvr, "/")
 
 	// 防止越界
 	if len(gvList) < 2 {
-		panic("gvr input error, please input like format apps/v1/deployments or core/v1/pods")
+		panic("gvr input error, please input like format apps/v1/deployments or core/v1/resource")
 	}
 
 	if len(gvList) < 3 {

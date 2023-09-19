@@ -52,7 +52,7 @@ type MetaData struct {
 	// ClusterName 集群名
 	ClusterName string `json:"clusterName" yaml:"clusterName"`
 
-	Resources []Resource `json:"resources" yaml:"resources"`
+	Resources []Resource `json:"resource" yaml:"resource"`
 }
 
 type Resource struct {
