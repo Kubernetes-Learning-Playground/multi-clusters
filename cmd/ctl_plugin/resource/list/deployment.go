@@ -10,6 +10,11 @@ import (
 	"strconv"
 )
 
+type WrapDeployment struct {
+	Object      *appsv1.Deployment `json:"Object"`
+	ClusterName string             `json:"clusterName"`
+}
+
 func Deployments(cluster, name, namespace string) error {
 
 	m := map[string]string{}
@@ -27,8 +32,8 @@ func Deployments(cluster, name, namespace string) error {
 		m["namespace"] = namespace
 	}
 
-	rr := make([]*appsv1.Deployment, 0)
-	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list", m)
+	rr := make([]*WrapDeployment, 0)
+	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list_with_cluster", m)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +45,7 @@ func Deployments(cluster, name, namespace string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "Deployment", "Namespace", "TOTAL", "Available", "Ready"}
+	content := []string{"集群名称", "Name", "Namespace", "TOTAL", "Available", "Ready"}
 
 	//if common.ShowLabels {
 	//	content = append(content, "标签")
@@ -52,7 +57,7 @@ func Deployments(cluster, name, namespace string) error {
 	table.SetHeader(content)
 
 	for _, deployment := range rr {
-		deploymentRow := []string{cluster, deployment.Name, deployment.Namespace, strconv.Itoa(int(deployment.Status.Replicas)), strconv.Itoa(int(deployment.Status.AvailableReplicas)), strconv.Itoa(int(deployment.Status.ReadyReplicas))}
+		deploymentRow := []string{deployment.ClusterName, deployment.Object.Name, deployment.Object.Namespace, strconv.Itoa(int(deployment.Object.Status.Replicas)), strconv.Itoa(int(deployment.Object.Status.AvailableReplicas)), strconv.Itoa(int(deployment.Object.Status.ReadyReplicas))}
 		//podRow := []string{pod.Name, pod.Namespace, pod.Status.PodIP, string(pod.Status.Phase)}
 
 		//if common.ShowLabels {

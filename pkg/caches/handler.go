@@ -54,7 +54,7 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 
 // handleObject 处理 work queue 传入对象
 func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
-	klog.Infof("[%s] handler [%s] object from work queue\n", r.clusterName, obj.EventType)
+	//klog.Infof("[%s] handler [%s] object from work queue\n", r.clusterName, obj.EventType)
 	res, err := store.NewResource(obj.Object, r.RestMapper, r.clusterName)
 	if err != nil {
 		klog.Errorf("new resource [%s] object error: %s\n", obj.EventType, err)

@@ -9,6 +9,10 @@ import (
 	"os"
 )
 
+type WrapPod struct {
+	Object      *v1.Pod `json:"Object"`
+	ClusterName string  `json:"clusterName"`
+}
 
 func Pods(cluster, name, namespace string) error {
 
@@ -27,8 +31,8 @@ func Pods(cluster, name, namespace string) error {
 		m["namespace"] = namespace
 	}
 
-	rr := make([]*v1.Pod, 0)
-	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list", m)
+	rr := make([]*WrapPod, 0)
+	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list_with_cluster", m)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +44,7 @@ func Pods(cluster, name, namespace string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "POD名称", "Namespace", "NODE", "POD IP", "状态", "容器名", "容器静像"}
+	content := []string{"集群名称", "Name", "Namespace", "NODE", "POD IP", "状态", "容器名", "容器静像"}
 
 	//if common.ShowLabels {
 	//	content = append(content, "标签")
@@ -52,7 +56,7 @@ func Pods(cluster, name, namespace string) error {
 	table.SetHeader(content)
 
 	for _, pod := range rr {
-		podRow := []string{cluster, pod.Name, pod.Namespace, pod.Spec.NodeName, pod.Status.PodIP, string(pod.Status.Phase), pod.Spec.Containers[0].Name, pod.Spec.Containers[0].Image}
+		podRow := []string{pod.ClusterName, pod.Object.Name, pod.Object.Namespace, pod.Object.Spec.NodeName, pod.Object.Status.PodIP, string(pod.Object.Status.Phase), pod.Object.Spec.Containers[0].Name, pod.Object.Spec.Containers[0].Image}
 
 		//if common.ShowLabels {
 		//	podRow = append(podRow, common.LabelsMapToString(pod.Labels))

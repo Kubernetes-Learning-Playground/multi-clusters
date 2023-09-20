@@ -50,5 +50,6 @@ func register(router *gin.Engine) {
 	r := router.Group("/v1")
 	{
 		r.GET("/list", RR.List)
+		r.GET("/list_with_cluster", RR.ListWrapWithCluster)
 	}
 }

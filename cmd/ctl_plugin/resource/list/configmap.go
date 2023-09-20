@@ -10,6 +10,10 @@ import (
 	"strconv"
 )
 
+type WrapConfigMap struct {
+	Object      *v1.ConfigMap `json:"Object"`
+	ClusterName string        `json:"clusterName"`
+}
 
 func Configmaps(cluster, name, namespace string) error {
 
@@ -28,8 +32,8 @@ func Configmaps(cluster, name, namespace string) error {
 		m["namespace"] = namespace
 	}
 
-	rr := make([]*v1.ConfigMap, 0)
-	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list", m)
+	rr := make([]*WrapConfigMap, 0)
+	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list_with_cluster", m)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +45,7 @@ func Configmaps(cluster, name, namespace string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "Configmap", "Namespace", "DATA"}
+	content := []string{"集群名称", "Name", "Namespace", "DATA"}
 
 	//if common.ShowLabels {
 	//	content = append(content, "标签")
@@ -54,7 +58,7 @@ func Configmaps(cluster, name, namespace string) error {
 
 	for _, cm := range rr {
 
-		podRow := []string{cluster, cm.Name, cm.Namespace, strconv.Itoa(len(cm.Data))}
+		podRow := []string{cm.ClusterName, cm.Object.Name, cm.Object.Namespace, strconv.Itoa(len(cm.Object.Data))}
 		//podRow := []string{pod.Name, pod.Namespace, pod.Status.PodIP, string(pod.Status.Phase)}
 
 		//if common.ShowLabels {
