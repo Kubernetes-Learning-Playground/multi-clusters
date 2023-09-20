@@ -120,7 +120,7 @@ func (r *Resources) Add(db *gorm.DB) error {
 func (r *Resources) Update(db *gorm.DB) error {
 	r.prepare()
 	r.UpdateAt = time.Now()
-	// 当 hash值不与库中的相等时，才进行更新
+	// 当 hash 值不与库中的相等时，才进行更新
 	return db.Where("uid=?", r.Uid).Where("hash!=?", r.Hash).Updates(r).Error
 }
 
@@ -129,5 +129,5 @@ func (r *Resources) Delete(db *gorm.DB) error {
 }
 
 func (*Resources) TableName() string {
-	return "resource"
+	return "resources"
 }

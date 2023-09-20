@@ -1,54 +1,17 @@
-package resource
+package list
 
 import (
 	"github.com/goccy/go-json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
-	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	"log"
 	"os"
 	"strconv"
 )
 
-var ConfigmapCmd = &cobra.Command{}
 
-func ConfigmapCommand() *cobra.Command {
-
-	ConfigmapCmd = &cobra.Command{
-		Use:          "configmaps [flags]",
-		Short:        "list resource",
-		Example:      "kubectl resource [flags]",
-		SilenceUsage: true,
-		RunE: func(c *cobra.Command, args []string) error {
-			cluster, err := c.Flags().GetString("clusterName")
-			if err != nil {
-				return err
-			}
-
-			ns, err := c.Flags().GetString("namespace")
-			if err != nil {
-				return err
-			}
-
-			name, err := c.Flags().GetString("name")
-			if err != nil {
-				return err
-			}
-
-			err = ListConfigmaps(cluster, name, ns)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-	}
-
-	return ConfigmapCmd
-
-}
-
-func ListConfigmaps(cluster, name, namespace string) error {
+func Configmaps(cluster, name, namespace string) error {
 
 	m := map[string]string{}
 	m["limit"] = "0"

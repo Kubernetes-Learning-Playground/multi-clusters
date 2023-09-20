@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/practice/multi_resource/pkg/config"
+	"github.com/practice/multi_resource/pkg/httpserver/service"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +21,7 @@ func HttpServer(ctx context.Context, opt *config.Options, dp *config.Dependencie
 	}
 
 	RR = &ResourceController{
-		ListService: &ListService{
+		ListService: &service.ListService{
 			DB: dp.DB,
 		},
 	}

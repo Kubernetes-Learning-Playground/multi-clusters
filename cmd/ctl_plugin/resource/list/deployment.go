@@ -1,54 +1,16 @@
-package resource
+package list
 
 import (
 	"github.com/goccy/go-json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
-	"github.com/spf13/cobra"
 	appsv1 "k8s.io/api/apps/v1"
 	"log"
 	"os"
 	"strconv"
 )
 
-var DeploymentCmd = &cobra.Command{}
-
-func DeploymentCommand() *cobra.Command {
-
-	DeploymentCmd = &cobra.Command{
-		Use:          "deployments [flags]",
-		Short:        "list resource",
-		Example:      "kubectl resource [flags]",
-		SilenceUsage: true,
-		RunE: func(c *cobra.Command, args []string) error {
-			cluster, err := c.Flags().GetString("clusterName")
-			if err != nil {
-				return err
-			}
-
-			ns, err := c.Flags().GetString("namespace")
-			if err != nil {
-				return err
-			}
-
-			name, err := c.Flags().GetString("name")
-			if err != nil {
-				return err
-			}
-
-			err = ListDeployments(cluster, name, ns)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-	}
-
-	return DeploymentCmd
-
-}
-
-func ListDeployments(cluster, name, namespace string) error {
+func Deployments(cluster, name, namespace string) error {
 
 	m := map[string]string{}
 	m["limit"] = "0"

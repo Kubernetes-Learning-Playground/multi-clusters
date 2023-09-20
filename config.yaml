@@ -6,21 +6,21 @@ clusters:                     # 集群列表
       # 资源类型
       resources:
         - rType: apps/v1/deployments
-        - rType: core/v1/resource
+        - rType: core/v1/pods
         - rType: core/v1/configmaps
   - metadata:
       clusterName: cluster2   # 自定义集群名
       insecure: true          # 是否开启跳过tls证书认证
-      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resource/config1 # kube config配置文件地址
+      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resources/config1 # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
-        - rType: core/v1/resource
+        - rType: core/v1/pods
         - rType: core/v1/configmaps
   - metadata:
       clusterName: cluster3   # 自定义集群名
       insecure: true          # 是否开启跳过tls证书认证
-      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resource/config # kube config配置文件地址
+      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resources/config # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
-        - rType: core/v1/resource
+        - rType: core/v1/pods
         - rType: core/v1/configmaps

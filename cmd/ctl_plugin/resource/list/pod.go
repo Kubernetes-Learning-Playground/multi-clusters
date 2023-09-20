@@ -1,53 +1,16 @@
-package resource
+package list
 
 import (
 	"github.com/goccy/go-json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
-	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	"log"
 	"os"
 )
 
-var PodCmd = &cobra.Command{}
 
-func PodCommand() *cobra.Command {
-
-	PodCmd = &cobra.Command{
-		Use:          "pods [flags]",
-		Short:        "list resource",
-		Example:      "kubectl resource [flags]",
-		SilenceUsage: true,
-		RunE: func(c *cobra.Command, args []string) error {
-			cluster, err := c.Flags().GetString("clusterName")
-			if err != nil {
-				return err
-			}
-
-			ns, err := c.Flags().GetString("namespace")
-			if err != nil {
-				return err
-			}
-
-			name, err := c.Flags().GetString("name")
-			if err != nil {
-				return err
-			}
-
-			err = ListPods(cluster, name, ns)
-			if err != nil {
-				return err
-			}
-			return nil
-		},
-	}
-
-	return PodCmd
-
-}
-
-func ListPods(cluster, name, namespace string) error {
+func Pods(cluster, name, namespace string) error {
 
 	m := map[string]string{}
 	m["limit"] = "0"

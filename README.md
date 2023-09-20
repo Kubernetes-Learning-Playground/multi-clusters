@@ -9,7 +9,7 @@
 2. 支持多资源配置
 3. 支持跳过tls认证
 4. 实现 http server 支持查询接口
-5. 支持查询多集群命令行插件
+5. 支持查询多集群命令行插件(list,describe)
 
 ![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
@@ -24,7 +24,7 @@ clusters:                     # 集群列表
       # 资源类型
       resources:
         - rType: apps/v1/deployments
-        - rType: core/v1/resource
+        - rType: core/v1/pods
         - rType: core/v1/configmaps
   - metadata:
       clusterName: cluster2   # 自定义集群名
@@ -32,7 +32,7 @@ clusters:                     # 集群列表
       configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resource/config1 # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
-        - rType: core/v1/resource
+        - rType: core/v1/pods
         - rType: core/v1/configmaps
 ```
 
@@ -46,7 +46,7 @@ clusters:                     # 集群列表
 - --clusterName：按集群名查询，不填默认所有集群
 - --name: 按名称查询，不填默认所有名称
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go configmaps --clusterName=cluster2      
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list configmaps --clusterName=cluster2      
 集群名称        CONFIGMAP                               NAMESPACE               DATA 
 cluster2        test-scheduling-config                  kube-system             1       
 cluster2        loki-loki-stack-test                    loki-stack              1       
@@ -62,7 +62,7 @@ cluster2        coredns         kube-system     1
 ```
 
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go pods --clusterName=cluster2                                   
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list pods --clusterName=cluster2                                   
 集群名称         POD名称                                                  NAMESPACE               POD IP          状态             容器名                           容器静像                                                                        
 cluster2        virtual-kubelet-pod-test-bash                           default                                 Running         ngx1                            nginx:1.18-alpine                                                                    
 cluster2        testpod1                                                default                                 Running         mytest                          nginx:1.18-alpine                                                                    
@@ -78,11 +78,22 @@ cluster2        dep-test-8b4fcc97-wl6td                                 default 
 ```
 
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go deployments --clusterName=cluster2
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list deployments --clusterName=cluster2
 集群名称        DEPLOYMENT                              NAMESPACE               TOTAL   AVAILABLE       READY 
 cluster2        dep-test                                default                 5       5               5       
 cluster2        testngx                                 default                 10      10              10      
 cluster2        test-pod-maxnum-scheduler               kube-system             1       1               1       
 cluster2        myingress-controller                    default                 1       1               1       
 cluster2        myapi                                   default                 1       1               1       
+```
+
+```bash
+➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go describe pods --clusterName=cluster2 --namespace=default --name=myredis-0
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2023-01-18T15:14:48Z"
+  managedFields:
+  - apiVersion: v1
+
 ```
