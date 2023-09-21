@@ -1,4 +1,4 @@
-## kubernetes多集群多资源存储方案
+## kubernetes简易多集群方案
 
 ### 项目思路与功能
 项目背景：在多集群应用场景中，会时常有根据不同集群查询资源的需求，基于此需求，本项目采用informer进行扩展封装，实现"**多集群**"且"**多资源**"的
@@ -10,6 +10,7 @@
 3. 支持跳过tls认证
 4. 实现 http server 支持查询接口
 5. 支持查询多集群命令行插件(list,describe)
+6. 支持多集群下发资源
 
 ![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
