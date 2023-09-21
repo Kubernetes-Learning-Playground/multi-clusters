@@ -20,11 +20,11 @@ var (
 )
 
 func init() {
-	// FIXME: 要改
+
 	cmdMetaData = &CmdMetaData{
-		Use:     "multiclusterctl [flags]",
-		Short:   "multiclusterctl [flags]",
-		Example: "multiclusterctl [flags]",
+		Use:     "kubectl [flags]",
+		Short:   "kubectl [flags]",
+		Example: "kubectl [flags]",
 	}
 
 }

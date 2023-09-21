@@ -2,6 +2,7 @@ package caches
 
 import (
 	"context"
+	"github.com/practice/multi_resource/pkg/caches/workqueue"
 	"github.com/practice/multi_resource/pkg/store"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -15,7 +16,8 @@ type ResourceHandler struct {
 	// RestMapper 资源对象
 	RestMapper meta.RESTMapper
 	// Queue 工作队列接口
-	store.Queue
+	workqueue.Queue
+	// clusterName 集群名
 	clusterName string
 }
 
@@ -53,7 +55,7 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 }
 
 // handleObject 处理 work queue 传入对象
-func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
+func (r *ResourceHandler) handleObject(obj *workqueue.QueueResource) error {
 	//klog.Infof("[%s] handler [%s] object from work queue\n", r.clusterName, obj.EventType)
 	res, err := store.NewResource(obj.Object, r.RestMapper, r.clusterName)
 	if err != nil {
@@ -63,26 +65,21 @@ func (r *ResourceHandler) handleObject(obj *store.QueueResource) error {
 
 	// 区分传入的事件，并进行相应处理
 	switch obj.EventType {
-	case store.AddEvent:
-
+	case workqueue.AddEvent:
 		err = res.Add(r.DB)
 		if err != nil {
 			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
 
-		return nil
-	case store.UpdateEvent:
-
+	case workqueue.UpdateEvent:
 		err = res.Update(r.DB)
 		if err != nil {
 			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
 
-		return nil
-	case store.DeleteEvent:
-
+	case workqueue.DeleteEvent:
 		err = res.Delete(r.DB)
 		if err != nil {
 			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
@@ -96,28 +93,28 @@ func NewResourceHandler(DB *gorm.DB, restMapper meta.RESTMapper, clusterName str
 	return &ResourceHandler{
 		DB:          DB,
 		RestMapper:  restMapper,
-		Queue:       store.NewWorkQueue(5),
+		Queue:       workqueue.NewWorkQueue(5),
 		clusterName: clusterName,
 	}
 }
 
 func (r *ResourceHandler) OnAdd(obj interface{}, isInInitialList bool) {
 	if o, ok := obj.(runtime.Object); ok {
-		rr := &store.QueueResource{Object: o, EventType: store.AddEvent}
+		rr := &workqueue.QueueResource{Object: o, EventType: workqueue.AddEvent}
 		r.Push(rr)
 	}
 }
 
 func (r *ResourceHandler) OnUpdate(oldObj, newObj interface{}) {
 	if o, ok := newObj.(runtime.Object); ok {
-		rr := &store.QueueResource{Object: o, EventType: store.UpdateEvent}
+		rr := &workqueue.QueueResource{Object: o, EventType: workqueue.UpdateEvent}
 		r.Push(rr)
 	}
 }
 
 func (r *ResourceHandler) OnDelete(obj interface{}) {
 	if o, ok := obj.(runtime.Object); ok {
-		rr := &store.QueueResource{Object: o, EventType: store.DeleteEvent}
+		rr := &workqueue.QueueResource{Object: o, EventType: workqueue.DeleteEvent}
 		r.Push(rr)
 	}
 }

@@ -1,4 +1,4 @@
-package store
+package workqueue
 
 import (
 	"github.com/pkg/errors"
@@ -15,7 +15,6 @@ var (
 )
 
 type QueueResource struct {
-	//ClusterName string
 	Object    runtime.Object
 	EventType EventType
 }

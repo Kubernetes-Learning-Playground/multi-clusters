@@ -3,6 +3,7 @@ package httpserver
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/practice/multi_resource/pkg/httpserver/service"
+	"github.com/practice/multi_resource/pkg/util"
 	"strconv"
 )
 
@@ -24,7 +25,7 @@ func (r *ResourceController) List(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := parseIntoGvr(gvrParam)
+	gvr := util.ParseIntoGvr(gvrParam, ".")
 	if gvr.Empty() {
 		panic("error gvr")
 	}
@@ -53,7 +54,7 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := parseIntoGvr(gvrParam)
+	gvr := util.ParseIntoGvr(gvrParam, ".")
 	if gvr.Empty() {
 		panic("error gvr")
 	}

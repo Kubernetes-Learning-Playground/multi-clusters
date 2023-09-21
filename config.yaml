@@ -1,8 +1,9 @@
 clusters:                     # 集群列表
   - metadata:
       clusterName: cluster1   # 自定义集群名
-      insecure: false          # 是否开启跳过tls证书认证
+      insecure: false         # 是否开启跳过tls证书认证
       configPath: /Users/zhenyu.jiang/.kube/config # kube config配置文件地址
+      isMaster: true          # 标示主集群
       # 资源类型
       resources:
         - rType: apps/v1/deployments

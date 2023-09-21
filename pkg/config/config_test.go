@@ -13,7 +13,6 @@ func TestLoadConfig(test *testing.T) {
 		klog.Error("load config error: ", err)
 		return
 	}
-	SysConfig = sysConfig
 	fmt.Println(sysConfig)
 	fmt.Println(sysConfig.Clusters[0])
 }

@@ -1,8 +1,7 @@
 package store
 
 import (
-	"crypto/md5"
-	"fmt"
+	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -12,12 +11,6 @@ import (
 	"sigs.k8s.io/yaml"
 	"time"
 )
-
-// hashObject 序列化内容进行md5
-func hashObject(data []byte) string {
-	has := md5.Sum(data)
-	return fmt.Sprintf("%x", has)
-}
 
 // Resources 放入表中的模型
 type Resources struct {
@@ -43,11 +36,10 @@ type Resources struct {
 	// owner
 	Owner  string `gorm:"column:owner"`
 	Object string `gorm:"column:object"`
-	// 时间相关
+	// 时间相关，UpdateAt DeleteAt 插入时 不需要赋值
 	CreateAt time.Time `gorm:"column:create_at"`
 	UpdateAt time.Time `gorm:"column:update_at"`
 	DeleteAt time.Time `gorm:"column:delete_at"`
-	//--UpdateAt DeleteAt 插入时 不需要赋值
 }
 
 func NewResource(obj runtime.Object, restmapper meta.RESTMapper, clusterName string) (*Resources, error) {
@@ -94,7 +86,7 @@ func (r *Resources) prepare() {
 		r.Owner = string(r.obj.GetOwnerReferences()[0].UID)
 	}
 	// 获取md5值
-	r.Hash = hashObject(r.objbytes)
+	r.Hash = util.HashObject(r.objbytes)
 	// 数据库为 Json类型
 	//r.Object = string(r.objbytes)
 	objJson, err := yaml.YAMLToJSON(r.objbytes)

@@ -5,7 +5,7 @@ import (
 	"flag"
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/httpserver"
-	"github.com/practice/multi_resource/pkg/multi_cluster"
+	"github.com/practice/multi_resource/pkg/multi_cluster_controller"
 	"k8s.io/klog/v2"
 )
 
@@ -55,20 +55,26 @@ func main() {
 		DB: db,
 	}
 
-	mch, err := multi_cluster.NewMultiClusterHandlerFromConfig(opt.ConfigPath, db)
+	mch, err := multi_cluster_controller.NewMultiClusterHandlerFromConfig(opt.ConfigPath, db)
 	if err != nil {
 		klog.Fatal(err)
 	}
 
 	// 启动多集群 handler
-	mch.Start(ctx)
+	mch.StartWorkQueueHandler(ctx)
 
 	errC := make(chan error)
 
-	// 启动httpServer
 	go func() {
-		klog.Info("httpserver start!! ")
+		klog.Info("httpserver start...")
 		if err = httpserver.HttpServer(ctx, opt, dp); err != nil {
+			errC <- err
+		}
+	}()
+
+	go func() {
+		klog.Info("operator manager start...")
+		if err = mch.StartOperatorManager(); err != nil {
 			errC <- err
 		}
 	}()
@@ -78,7 +84,7 @@ func main() {
 		klog.Errorf("internal error: %s", ctx.Err())
 		break
 	case ee := <-errC:
-		klog.Errorf("http server internal error: %s", ee)
+		klog.Errorf("http server or operator manager internal error: %s", ee)
 		break
 	}
 }

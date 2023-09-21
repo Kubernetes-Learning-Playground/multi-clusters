@@ -3,13 +3,9 @@ package config
 import (
 	"fmt"
 	"github.com/go-yaml/yaml"
-	"io/ioutil"
 	"log"
+	"os"
 )
-
-// TODO: 配置文件
-
-var SysConfig *Config
 
 type Config struct {
 	Clusters []Cluster `json:"clusters" yaml:"clusters"`
@@ -20,7 +16,7 @@ func NewConfig() *Config {
 }
 
 func loadConfigFile(path string) []byte {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -51,6 +47,8 @@ type MetaData struct {
 	Insecure bool `json:"insecure" yaml:"insecure"`
 	// ClusterName 集群名
 	ClusterName string `json:"clusterName" yaml:"clusterName"`
+	// isMaster 是否为主集群
+	IsMaster bool `json:"isMaster" yaml:"isMaster"`
 
 	Resources []Resource `json:"resources" yaml:"resources"`
 }
