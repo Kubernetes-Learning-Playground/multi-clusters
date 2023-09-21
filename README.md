@@ -1,17 +1,16 @@
-## kubernetes多集群多资源存储方案
+## kubernetes简易多集群方案
 
 ### 项目思路与功能
-项目背景：在多集群应用场景中，会时常有根据不同集群查询资源的需求，基于此需求，本项目采用informer进行扩展封装，实现"**多集群**"且"**多资源**"的
-存储方案。
+项目背景：在目前云原生中，会常有需要同时操作"多集群"的场景，不论是多集群"查询"或是"分发资源"等操作，本项目采用 **informer** + **operator** 进行扩展封装，
+实现**多集群**且**多资源**方案。
 
 支持功能：
 1. 支持"多集群"配置
-2. 支持多资源配置
-3. 支持跳过tls认证
+2. 支持"多资源"配置
+3. 支持跳过 restconfig tls 认证
 4. 实现 http server 支持查询接口
 5. 支持查询多集群命令行插件(list,describe)
-
-![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
+6. 支持多集群下发资源
 
 ### 配置文件
 - **重要** 配置文件可参考config.yaml中配置，调用方只需要关注配置文件中的内容即可。
@@ -35,14 +34,16 @@ clusters:                     # 集群列表
         - rType: core/v1/pods
         - rType: core/v1/configmaps
 ```
+![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
-### 多集群命令行查询
+### 多集群命令行查询(也支持 http server查询)
 目前支持查询资源
 - pods
 - configmaps
 - deployments
-注：后缀参数：
-- --namesapce：按命名空间查询，不填默认所有命名空间
+
+后缀参数：
+- --namespace：按命名空间查询，不填默认所有命名空间
 - --clusterName：按集群名查询，不填默认所有集群
 - --name: 按名称查询，不填默认所有名称
 ```bash
@@ -59,6 +60,7 @@ cluster2        kube-root-ca.crt                        mycsi                   
 集群名称        CONFIGMAP       NAMESPACE       DATA 
 cluster2        coredns         kube-system     1       
 ```
+查询多集群 pods 资源
 ```bash
 ➜  cmd git:(main) ✗ go run ctl_plugin/main.go list pods --clusterName=cluster2                                   
 集群名称         NAME                                                    NAMESPACE               POD IP          状态             容器名                           容器静像                                                                        
@@ -95,6 +97,7 @@ cluster2        dep-test-8b4fcc97-znlp5                                         
 cluster2        dep-test-8b4fcc97-vxf55                                         default                                 vm-0-16-centos          10.244.0.126    Running         dep-test-container           nginx:1.18-alpine                                                                       
 cluster2        inspect-script-task-task3--1-fjxm9                              default                                 vm-0-16-centos          10.244.0.94     Pending         default                      inspect-operator/script-engine:v1
 ```
+查询多集群 deployments 资源
 ```bash
 ➜  cmd git:(main) ✗ go run ctl_plugin/main.go list deployments --clusterName=cluster2
 集群名称         NAME                                    NAMESPACE               TOTAL   AVAILABLE       READY 
@@ -104,7 +107,7 @@ cluster2        test-pod-maxnum-scheduler               kube-system             
 cluster2        myingress-controller                    default                 1       1               1       
 cluster2        myapi                                   default                 1       1               1       
 ```
-
+查询多集群 pods 资源详细
 ```bash
 ➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go describe pods --clusterName=cluster2 --namespace=default --name=myredis-0
 apiVersion: v1
@@ -113,5 +116,55 @@ metadata:
   creationTimestamp: "2023-01-18T15:14:48Z"
   managedFields:
   - apiVersion: v1
+```
 
+### 多集群下发资源
+- crd 资源对象如下
+```yaml
+apiVersion: mulitcluster.practice.com/v1alpha1
+kind: MultiClusterResource
+metadata:
+  name: mypod.pod
+  namespace: default
+spec:
+   # 资源模版，内部填写需要的 k8s 原始资源
+   template:
+     apiVersion: v1
+     kind: Pod
+     metadata:
+       name: multicluster-pod
+       namespace: default
+     spec:
+       containers:
+         - image: busybox
+           command:
+             - sleep
+             - "3600"
+           imagePullPolicy: IfNotPresent
+           name: busybox
+       restartPolicy: Always
+   # 可以自行选择不同集群下发，如果修改后，
+   # 也会相应的新增或删除特定集群的资源    
+   placement:
+     clusters:
+       - name: cluster1
+       - name: cluster2
+       - name: cluster3
+```
+
+- 使用
+可以看出，当在主集群创建 CRD 后，会自动下发到其他集群。
+```bash
+# apply
+➜  multi_resource git:(main) ✗ kubectl apply -f yaml/test.yaml    
+multiclusterresource.mulitcluster.practice.com/mypod.pod created
+# 查询
+➜  multi_resource git:(main) ✗ kubectl get multiclusterresources.mulitcluster.practice.com    
+NAME        AGE
+mypod.pod   45m
+➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list pods  --namespace=default --name=multicluster-pod
+集群名称        NAME                    NAMESPACE       NODE            POD IP          状态    容器名  容器静像 
+cluster3        multicluster-pod        default         vm-0-17-centos  10.244.167.193  Running busybox busybox         
+cluster1        multicluster-pod        default         minikube        10.244.1.48     Running busybox busybox         
+cluster2        multicluster-pod        default         vm-0-16-centos  10.244.0.142    Running busybox busybox         
 ```
