@@ -27,7 +27,7 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	if !rr.DeletionTimestamp.IsZero() {
 		err = mc.resourceDelete(rr)
 		if err != nil {
-			mc.EventRecorder.Event(rr, corev1.EventTypeNormal, "Delete", fmt.Sprintf("delete %s fail", rr.Name))
+			mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "Delete", fmt.Sprintf("delete %s fail", rr.Name))
 			return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 		}
 

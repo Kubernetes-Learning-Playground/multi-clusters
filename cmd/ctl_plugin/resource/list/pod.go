@@ -44,7 +44,7 @@ func Pods(cluster, name, namespace string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "Name", "Namespace", "NODE", "POD IP", "状态", "容器名", "容器静像"}
+	content := []string{"集群名称", "Name", "Namespace", "NODE", "POD IP", "状态", "容器名", "容器镜像"}
 
 	//if common.ShowLabels {
 	//	content = append(content, "标签")
