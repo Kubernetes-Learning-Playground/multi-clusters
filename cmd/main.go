@@ -6,6 +6,7 @@ import (
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/httpserver"
 	"github.com/practice/multi_resource/pkg/multi_cluster_controller"
+	"github.com/practice/multi_resource/pkg/util"
 	"k8s.io/klog/v2"
 )
 
@@ -66,6 +67,7 @@ func main() {
 	errC := make(chan error)
 
 	go func() {
+		defer util.HandleCrash()
 		klog.Info("httpserver start...")
 		if err = httpserver.HttpServer(ctx, opt, dp); err != nil {
 			errC <- err
@@ -73,7 +75,9 @@ func main() {
 	}()
 
 	go func() {
+		defer util.HandleCrash()
 		klog.Info("operator manager start...")
+
 		if err = mch.StartOperatorManager(); err != nil {
 			errC <- err
 		}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/practice/multi_resource/pkg/caches/workqueue"
 	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,6 +26,7 @@ type ResourceHandler struct {
 func (r *ResourceHandler) Start(ctx context.Context) {
 	klog.Info("worker queue start...")
 	go func() {
+		defer util.HandleCrash()
 		for {
 			select {
 			case <-ctx.Done():

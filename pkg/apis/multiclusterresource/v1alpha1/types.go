@@ -16,6 +16,7 @@ type MultiClusterResource struct {
 }
 
 type ResourceSpec struct {
+	// 资源模版
 	Template DataTemplate `json:"template,omitempty"`
 	// 集群
 	/*
@@ -25,8 +26,8 @@ type ResourceSpec struct {
 			   - name: huawei
 	*/
 	Placement DataTemplate `json:"placement,omitempty"`
-	Customize Customize    `json:"customize,omitempty"`
-	//Clusters DataTemplate `json:"clusters,omitempty"`
+	// 差异化适配
+	Customize Customize `json:"customize,omitempty"`
 }
 
 type Customize struct {
@@ -72,7 +73,6 @@ func (in *StatusTemplate) DeepCopyInto(out *StatusTemplate) {
 	}
 }
 
-// 看不懂 来问
 type DataTemplate map[string]interface{}
 
 func (in *DataTemplate) DeepCopyInto(out *DataTemplate) {
