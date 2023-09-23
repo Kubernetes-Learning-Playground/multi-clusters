@@ -60,7 +60,7 @@ func (c *wq) Pop() (*QueueResource, error) {
 	obj, quit := c.Get()
 
 	if quit {
-		return &QueueResource{}, errors.New("Controller has been stoped. ")
+		return &QueueResource{}, errors.New("Controller has been stopped.")
 	}
 	return obj.(*QueueResource), nil
 }

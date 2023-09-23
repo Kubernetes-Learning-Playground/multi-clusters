@@ -2,6 +2,7 @@ package multi_cluster_controller
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/caches"
 	"github.com/practice/multi_resource/pkg/config"
@@ -37,6 +38,8 @@ type MultiClusterHandler struct {
 	client.Client
 	// 事件发送器
 	EventRecorder record.EventRecorder
+
+	logr.Logger
 }
 
 // NewMultiClusterHandlerFromConfig 输入配置文件目录，返回MultiClusterInformer对象
@@ -128,7 +131,7 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 		})
 
 	if err != nil {
-		klog.Errorf("unable to set up manager:", err.Error())
+		mc.Logger.Error(err, "unable to set up manager")
 		return err
 	}
 	// 2. 安装 CRD 资源对象
@@ -137,7 +140,7 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 	// 3. 注册进入序列化表
 	err = v1alpha1.SchemeBuilder.AddToScheme(mgr.GetScheme())
 	if err != nil {
-		mgr.GetLogger().Error(err, "unable add schema")
+		mc.Logger.Error(err, "unable add schema")
 		return err
 	}
 
@@ -148,17 +151,18 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 	if mc.EventRecorder == nil {
 		mc.EventRecorder = mgr.GetEventRecorderFor("multi-cluster-operator")
 	}
+	mc.Logger = mgr.GetLogger()
 
 	if err = builder.ControllerManagedBy(mgr).
 		For(&v1alpha1.MultiClusterResource{}).
 		Complete(mc); err != nil {
-		mgr.GetLogger().Error(err, "unable to create manager")
+		mc.Logger.Error(err, "unable to create manager")
 		return err
 	}
 
 	// 5. 启动controller管理器
 	if err = mgr.Start(signals.SetupSignalHandler()); err != nil {
-		mgr.GetLogger().Error(err, "unable to start manager")
+		mc.Logger.Error(err, "unable to start manager")
 		return err
 	}
 

@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/resource"
 	"k8s.io/client-go/rest"
+	"k8s.io/klog/v2"
 	"k8s.io/kubectl/pkg/util"
 	"log"
 )
@@ -38,8 +39,7 @@ func newRestClient(restConfig *rest.Config, gv schema.GroupVersion) (rest.Interf
 }
 
 func K8sDelete(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) error {
-	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(json),
-		len(json))
+	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(json), len(json))
 	for {
 		var rawObj runtime.RawExtension
 		err := decoder.Decode(&rawObj)
@@ -77,9 +77,8 @@ func K8sDelete(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) err
 
 		_, err = helper.Delete(unstructuredObj.GetNamespace(), unstructuredObj.GetName())
 		if err != nil {
-			log.Println(fmt.Sprintf("删除资源 %s/%s 失败:%s", unstructuredObj.GetNamespace(),
-				unstructuredObj.GetName(), err.Error(),
-			))
+			klog.Infof(fmt.Sprintf("delete resource %s/%s failed:%s", unstructuredObj.GetNamespace(),
+				unstructuredObj.GetName(), err.Error()))
 		}
 
 	}
@@ -101,13 +100,13 @@ func K8sApply(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) ([]*
 				return resList, err
 			}
 		}
-		// 得到gvk
+		// 得到 gvk
 		obj, gvk, err := syaml.NewDecodingSerializer(unstructured.
 			UnstructuredJSONScheme).Decode(rawObj.Raw, nil, nil)
 		if err != nil {
 			return resList, err
 		}
-		//把obj 变成map[string]interface{}
+		// 把 obj 变成 map[string]interface{}
 		unstructuredMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 		if err != nil {
 			return resList, err
@@ -156,8 +155,6 @@ func K8sApply(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) ([]*
 			// 直接创建
 			obj, err := helper.Create(objInfo.Namespace, true, objInfo.Object)
 			if err != nil {
-
-				fmt.Println("有错")
 				return resList, err
 			}
 			objInfo.Refresh(obj, true)
