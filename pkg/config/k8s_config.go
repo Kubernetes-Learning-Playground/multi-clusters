@@ -60,7 +60,7 @@ func (kc *K8sConfig) initClientOrDie() *kubernetes.Clientset {
 	return c
 }
 
-// NewRestMapperOrDie 获取 api group resource
+// NewRestMapperOrDie 获取 api group multiclusterresource
 func (kc *K8sConfig) NewRestMapperOrDie() *meta.RESTMapper {
 	gr, err := restmapper.GetAPIGroupResources(kc.initClientOrDie().Discovery())
 	if err != nil {
@@ -71,7 +71,7 @@ func (kc *K8sConfig) NewRestMapperOrDie() *meta.RESTMapper {
 }
 
 // InitWatchFactoryAndRestConfig 初始化 dynamic client informerFactory, restConfig
-func (kc *K8sConfig) InitWatchFactoryAndRestConfig() (dynamicinformer.DynamicSharedInformerFactory, *rest.Config) {
+func (kc *K8sConfig) InitWatchFactoryAndRestConfig() (dynamicinformer.DynamicSharedInformerFactory, dynamic.Interface, *rest.Config) {
 	dynClient := kc.initDynamicClientOrDie()
-	return dynamicinformer.NewDynamicSharedInformerFactory(dynClient, 0), kc.k8sRestConfigDefaultOrDie(kc.insecure)
+	return dynamicinformer.NewDynamicSharedInformerFactory(dynClient, 0), dynClient, kc.k8sRestConfigDefaultOrDie(kc.insecure)
 }

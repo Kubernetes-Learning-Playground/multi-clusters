@@ -15,7 +15,7 @@ func ParseIntoGvr(gvr, splitString string) schema.GroupVersionResource {
 
 	// 防止越界
 	if len(gvList) < 2 {
-		panic("gvr input error, please input like format apps/v1/deployments or core/v1/resource")
+		panic("gvr input error, please input like format apps/v1/deployments or core/v1/multiclusterresource")
 	}
 
 	if len(gvList) == 2 {

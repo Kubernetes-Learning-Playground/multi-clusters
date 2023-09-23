@@ -11,6 +11,7 @@
 4. 实现 http server 支持查询接口
 5. 支持查询多集群命令行插件(list,describe)
 6. 支持多集群下发资源
+7. 支持多集群**差异化配置**
 
 ### 配置文件
 - **重要** 配置文件可参考config.yaml中配置，调用方只需要关注配置文件中的内容即可。
@@ -28,7 +29,7 @@ clusters:                     # 集群列表
   - metadata:
       clusterName: cluster2   # 自定义集群名
       insecure: true          # 是否开启跳过tls证书认证
-      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/resource/config1 # kube config配置文件地址
+      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
         - rType: core/v1/pods
@@ -119,7 +120,7 @@ metadata:
 ```
 
 ### 多集群下发资源
-- crd 资源对象如下
+- crd 资源对象如下，更多信息可以参考 [参考](./yaml)
 ```yaml
 apiVersion: mulitcluster.practice.com/v1alpha1
 kind: MultiClusterResource
@@ -144,15 +145,33 @@ spec:
            name: busybox
        restartPolicy: Always
    # 可以自行选择不同集群下发，如果修改后，
-   # 也会相应的新增或删除特定集群的资源    
+   # 也会相应的新增或删除特定集群的资源 
+   # 注：如果 placement 删除，customize 相应的集群也需要删除！！
    placement:
      clusters:
        - name: cluster1
        - name: cluster2
        - name: cluster3
+   # 可以不填写
+   customize:
+     clusters:
+       - name: cluster1
+         action:
+           # 替换镜像
+           - path: "/spec/containers/0/image"
+             op: "replace"
+             value:
+               - "nginx:1.19.0-alpine"
+       - name: cluster2
+         action:
+           # 新增 annotations
+           - path: "/metadata/annotations/example"
+             value:
+               - "example"
+             op: "add"
 ```
-
 - 使用
+
 可以看出，当在主集群创建 CRD 后，会自动下发到其他集群。
 ```bash
 # apply
@@ -166,5 +185,11 @@ mypod.pod   45m
 集群名称        NAME                    NAMESPACE       NODE            POD IP          状态    容器名  容器静像 
 cluster3        multicluster-pod        default         vm-0-17-centos  10.244.167.193  Running busybox busybox         
 cluster1        multicluster-pod        default         minikube        10.244.1.48     Running busybox busybox         
-cluster2        multicluster-pod        default         vm-0-16-centos  10.244.0.142    Running busybox busybox         
+cluster2        multicluster-pod        default         vm-0-16-centos  10.244.0.142    Running busybox busybox   
+# 使用 customize 实现差异化部署
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list deployments --name=multiclusterresource-deployment
+集群名称        NAME                            NAMESPACE       TOTAL   AVAILABLE       READY 
+cluster3        multiclusterresource-deployment default         3       3               3       
+cluster1        multiclusterresource-deployment default         2       2               2       
+cluster2        multiclusterresource-deployment default         1       1               1       
 ```

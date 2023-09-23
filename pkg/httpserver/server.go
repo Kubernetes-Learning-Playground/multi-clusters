@@ -6,12 +6,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/httpserver/service"
-	"gorm.io/gorm"
 )
 
 var (
 	RR *ResourceController
-	db *gorm.DB
 )
 
 func HttpServer(ctx context.Context, opt *config.Options, dp *config.Dependencies) error {
@@ -27,6 +25,8 @@ func HttpServer(ctx context.Context, opt *config.Options, dp *config.Dependencie
 	}
 
 	router := gin.New()
+	router.Use(gin.Recovery())
+
 	errCh := make(chan error, 1)
 
 	register(router)

@@ -25,7 +25,24 @@ type ResourceSpec struct {
 			   - name: huawei
 	*/
 	Placement DataTemplate `json:"placement,omitempty"`
+	Customize Customize    `json:"customize,omitempty"`
 	//Clusters DataTemplate `json:"clusters,omitempty"`
+}
+
+type Customize struct {
+	Clusters []Cluster `json:"clusters,omitempty"`
+}
+
+type Cluster struct {
+	Name   string   `json:"name,omitempty"`
+	Action []Action `json:"action,omitempty"`
+}
+
+type Action struct {
+	Type  string        `json:"type,omitempty"`
+	Path  string        `json:"path,omitempty"`
+	Value []interface{} `json:"value,omitempty"`
+	Op    string        `json:"op,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -55,6 +72,7 @@ func (in *StatusTemplate) DeepCopyInto(out *StatusTemplate) {
 	}
 }
 
+// 看不懂 来问
 type DataTemplate map[string]interface{}
 
 func (in *DataTemplate) DeepCopyInto(out *DataTemplate) {

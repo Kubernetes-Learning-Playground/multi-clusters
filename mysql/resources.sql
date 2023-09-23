@@ -18,7 +18,7 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ----------------------------
--- Table structure for resource
+-- Table structure for resources
 -- ----------------------------
 DROP TABLE IF EXISTS `resources`;
 CREATE TABLE `resources`  (

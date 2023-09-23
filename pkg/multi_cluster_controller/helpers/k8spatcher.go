@@ -73,7 +73,7 @@ type Patcher struct {
 	OpenapiSchema openapi.Resources
 }
 
-// Patch tries to patch an OpenAPI resource. On success, returns the merge patch as well
+// Patch tries to patch an OpenAPI multiclusterresource. On success, returns the merge patch as well
 // the final patched object. On failure, returns an error.
 func (p *Patcher) Patch(current runtime.Object, modified []byte,
 	namespace, name string) ([]byte, runtime.Object, error) {

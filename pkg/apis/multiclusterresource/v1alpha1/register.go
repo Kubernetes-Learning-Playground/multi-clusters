@@ -9,7 +9,7 @@ import (
 const (
 	MultiClusterResourceGroup      = "mulitcluster.practice.com"
 	MultiClusterResourceVersion    = "v1alpha1"
-	MultiClusterResourceKind       = "Resource"
+	MultiClusterResourceKind       = "MultiClusterResource"
 	MultiClusterResourceApiVersion = "mulitcluster.practice.com/v1alpha1"
 )
 
@@ -21,7 +21,7 @@ func Kind(kind string) schema.GroupKind {
 	return SchemeGroupVersion.WithKind(kind).GroupKind()
 }
 
-// GetResource takes an unqualified resource and returns a Group qualified GroupResource
+// GetResource takes an unqualified multiclusterresource and returns a Group qualified GroupResource
 func GetResource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }

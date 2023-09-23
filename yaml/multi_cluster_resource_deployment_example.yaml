@@ -1,0 +1,89 @@
+apiVersion: mulitcluster.practice.com/v1alpha1
+kind: MultiClusterResource
+metadata:
+  name: mydeployment.deployment
+  namespace: default
+spec:
+   # 模版：填写k8s 原生资源
+   template:
+     apiVersion: apps/v1
+     kind: Deployment
+     metadata:
+       name: multiclusterresource-deployment
+       namespace: default
+       labels:
+         app: example
+     spec:
+       replicas: 3
+       selector:
+         matchLabels:
+           app: example
+       template:
+         metadata:
+           labels:
+             app: example
+         spec:
+           containers:
+             - name: example-container
+               image: nginx:latest
+               ports:
+                 - containerPort: 80
+   # 可自行填写多个集群
+   placement:
+     clusters:
+       - name: cluster1
+       - name: cluster2
+       - name: cluster3
+   # 多集群间差异化配置
+   customize:
+     clusters:
+       - name: cluster1
+         action:
+           # 删除label
+           - path: "/metadata/labels/app"
+             value:
+               - "example"
+             op: "remove"
+           # 替换镜像
+           - path: "/spec/template/spec/containers/0/image"
+             value:
+               - "nginx:1.19.0-alpine"
+             op: "replace"
+           # 修改副本数
+           - path: "/spec/replicas"
+             op: "replace"
+             value:
+               - 2
+       - name: cluster2
+         action:
+           # 新增 annotations
+           - path: "/metadata/annotations"
+             value:
+               - "foo=bar"
+             op: "add"
+           # 修改副本数
+           - path: "/spec/replicas"
+             op: "replace"
+             value:
+               - 1
+       - name: cluster3
+         action:
+           # 新增 annotations
+           - path: "/metadata/annotations"
+             value:
+               - "app=bar"
+             op: "add"
+           # 替换镜像
+           - path: "/spec/template/spec/containers/0/image"
+             value:
+               - "nginx:1.19.0-alpine"
+             op: "replace"
+
+           # 不支持新增 sidecar 容器，重入会有报错问题，reco
+#           - path: "/spec/template/spec/containers/1"
+#             value:
+#               - "name=redis"
+#               - "image=redis:5-alpine"
+#             op: "add"
+
+    

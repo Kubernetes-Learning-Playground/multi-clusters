@@ -2,13 +2,14 @@ package multi_cluster_controller
 
 import (
 	"context"
-	"github.com/practice/multi_resource/pkg/apis/resource/v1alpha1"
+	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/caches"
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
@@ -28,6 +29,7 @@ type MultiClusterHandler struct {
 	MasterCluster string
 	// 用于缓存需要的多集群信息，key:集群名，config 中定义 value:由各集群初始化后的对象
 	RestConfigMap      map[string]*rest.Config
+	DynamicClientMap   map[string]dynamic.Interface
 	RestMapperMap      map[string]*meta.RESTMapper
 	InformerFactoryMap map[string]dynamicinformer.DynamicSharedInformerFactory
 	HandlerMap         map[string]*caches.ResourceHandler
@@ -60,6 +62,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 	core := &MultiClusterHandler{
 		RestConfigMap:      map[string]*rest.Config{},
 		RestMapperMap:      map[string]*meta.RESTMapper{},
+		DynamicClientMap:   map[string]dynamic.Interface{},
 		InformerFactoryMap: map[string]dynamicinformer.DynamicSharedInformerFactory{},
 		HandlerMap:         map[string]*caches.ResourceHandler{},
 	}
@@ -73,7 +76,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 		// 处理需要的初始化
 		if v.MetaData.ConfigPath != "" {
 			k8sConfig := config.NewK8sConfig(v.MetaData.ConfigPath, v.MetaData.Insecure)
-			watcher, restConfig := k8sConfig.InitWatchFactoryAndRestConfig()
+			watcher, dyclient, restConfig := k8sConfig.InitWatchFactoryAndRestConfig()
 			// 用于 GVR GVK 转换
 			restMapper := k8sConfig.NewRestMapperOrDie()
 			// 初始化回调处理函数
@@ -91,6 +94,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 			// 存入
 			core.InformerFactoryMap[v.MetaData.ClusterName] = watcher
 			core.HandlerMap[v.MetaData.ClusterName] = handler
+			core.DynamicClientMap[v.MetaData.ClusterName] = dyclient
 			core.RestConfigMap[v.MetaData.ClusterName] = restConfig
 			core.RestMapperMap[v.MetaData.ClusterName] = restMapper
 		}

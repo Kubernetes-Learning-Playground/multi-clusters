@@ -27,7 +27,8 @@ func (r *ResourceController) List(c *gin.Context) {
 	// 解析 gvr
 	gvr := util.ParseIntoGvr(gvrParam, ".")
 	if gvr.Empty() {
-		panic("error gvr")
+		c.JSON(400, gin.H{"error": "empty gvr input"})
+		return
 	}
 	ll, _ := strconv.Atoi(limit)
 	// 获取列表
@@ -56,7 +57,7 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 	// 解析 gvr
 	gvr := util.ParseIntoGvr(gvrParam, ".")
 	if gvr.Empty() {
-		panic("error gvr")
+
 	}
 	ll, _ := strconv.Atoi(limit)
 	// 获取列表
@@ -66,5 +67,4 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 		return
 	}
 	c.JSON(200, list)
-	return
 }

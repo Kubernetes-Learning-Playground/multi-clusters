@@ -1,10 +1,20 @@
 package multi_cluster_controller
 
 import (
-	"github.com/practice/multi_resource/pkg/apis/resource/v1alpha1"
+	"context"
+	"fmt"
+	"github.com/pkg/errors"
+	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/multi_cluster_controller/helpers"
 	"github.com/practice/multi_resource/pkg/util"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/klog/v2"
+	"strings"
 
 	"sort"
 )
@@ -37,6 +47,72 @@ func (mc *MultiClusterHandler) getPlacementClusters(res *v1alpha1.MultiClusterRe
 		}
 	}
 	return clustersList
+}
+
+type JSONPatch struct {
+	Path  string      `json:"path"`
+	Op    string      `json:"op"`
+	Value interface{} `json:"value,omitempty"`
+}
+
+type ParseRes struct {
+	Cluster string
+	Action  []*JSONPatch
+}
+
+// getCustomizeClusters 从 crd 获取差异化信息
+// FIXME: 注意 这种处理切片很容易 panic，可能会有没考虑到的地方
+func (mc *MultiClusterHandler) getCustomizeClusters(res *v1alpha1.MultiClusterResource) []*ParseRes {
+	resultList := make([]*ParseRes, 0)
+
+	if len(res.Spec.Customize.Clusters) == 0 {
+		return resultList
+	}
+
+	for _, v := range res.Spec.Customize.Clusters {
+		jsonPatchList := &ParseRes{
+			Cluster: v.Name,
+			Action:  make([]*JSONPatch, 0),
+		}
+		for _, action := range v.Action {
+			jsonPatch := &JSONPatch{
+				Path: action.Path,
+				Op:   action.Op,
+			}
+
+			patchMap := make(map[string]interface{})
+			var patchInterface interface{}
+			var is bool
+			for _, value := range action.Value {
+				// 判断是否是 string 类型，如果是 会有两种情况
+				// 1. 输入是 类似 "name=redis"  or  "image=xxx"
+				// 所以需要分割存入 map
+				// 2. 直接是普通 string
+				if dd, ok := value.(string); ok {
+					caa := strings.Split(dd, "=")
+
+					if len(caa) > 1 {
+						is = true
+						patchMap[caa[0]] = caa[1]
+					}
+				}
+				// 接受其他类型 ex: replicas 需要的是 int32
+				patchInterface = value
+			}
+
+			// 区分赋值 patchMap or patchInterface
+			if is {
+				jsonPatch.Value = patchMap
+			} else {
+				jsonPatch.Value = patchInterface
+			}
+
+			jsonPatchList.Action = append(jsonPatchList.Action, jsonPatch)
+		}
+		resultList = append(resultList, jsonPatchList)
+	}
+
+	return resultList
 }
 
 // setResourceFinalizer 比对进入调协的 crd 的 Finalizers 字段与 Placement 字段是否一致
@@ -154,6 +230,66 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 				_, err = helpers.K8sApply(b, cfg, *mc.RestMapperMap[c])
 				if err != nil {
 					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func GetGVR(obj *unstructured.Unstructured) (schema.GroupVersionResource, error) {
+	accessor := meta.NewAccessor()
+	apiVersion, err := accessor.APIVersion(obj)
+	r := schema.GroupVersionResource{}
+	if err != nil {
+		return r, fmt.Errorf("failed to get API version: %v", err)
+	}
+
+	kind, err := accessor.Kind(obj)
+	if err != nil {
+		return r, fmt.Errorf("failed to get kind: %v", err)
+	}
+
+	gv, err := schema.ParseGroupVersion(apiVersion)
+	if err != nil {
+		return r, fmt.Errorf("failed to parse GroupVersion: %v", err)
+	}
+	// FIXME: 目前使用 转小写 + s 的方式 mock
+	resource := strings.ToLower(kind) + "s"
+	gvr := gv.WithResource(resource)
+	return gvr, nil
+}
+
+func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource) error {
+	tpl := res.Spec.Template
+	obj := &unstructured.Unstructured{}
+	obj.SetUnstructuredContent(tpl)
+	gvr, err := GetGVR(obj)
+	if err != nil {
+		return err
+	}
+
+	// 处理 Placement
+	clusters := mc.getCustomizeClusters(res)
+
+	// 区分需要对哪些集群进行 patch
+	if len(clusters) == 0 {
+		return nil
+
+	} else {
+		for _, c := range clusters {
+
+			if dyclient, ok := mc.DynamicClientMap[c.Cluster]; ok {
+				b, err := json.Marshal(c.Action)
+				if err != nil {
+					klog.Fatal("ddd", err)
+					return errors.Wrap(err, "patch action marshal error")
+				}
+				_, err = dyclient.Resource(gvr).Namespace(obj.GetNamespace()).
+					Patch(context.Background(), obj.GetName(), types.JSONPatchType, b, metav1.PatchOptions{})
+				if err != nil {
+					klog.Fatal(err)
+					return errors.Wrap(err, "patch to api-server error")
 				}
 			}
 		}

@@ -3,7 +3,7 @@ package multi_cluster_controller
 import (
 	"context"
 	"fmt"
-	"github.com/practice/multi_resource/pkg/apis/resource/v1alpha1"
+	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -64,6 +64,12 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	err = mc.resourceApply(rr)
 	if err != nil {
 		mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "ApplyFailed", fmt.Sprintf("resourceApply %s fail", rr.Name))
+		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
+	}
+
+	err = mc.resourcePatch(rr)
+	if err != nil {
+		mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "PatchFailed", fmt.Sprintf("resourcePatch %s fail", rr.Name))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 	}
 
