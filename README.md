@@ -37,7 +37,7 @@ clusters:                     # 集群列表
 ```
 ![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
-### 多集群命令行查询(也支持 http server查询)
+### 多集群命令行查询(也支持 http server 查询)
 目前支持查询资源
 - pods
 - configmaps
@@ -117,6 +117,18 @@ metadata:
   creationTimestamp: "2023-01-18T15:14:48Z"
   managedFields:
   - apiVersion: v1
+```
+
+#### 部署命令行工具
+```bash
+➜  ctl_plugin git:(main) ✗ pwd
+/xxxxx/multi_resource/cmd/ctl_plugin
+➜  ctl_plugin git:(main) ✗ go build -o kubectl-multicluster .
+➜  ctl_plugin git:(main) ✗ chmod 777 kubectl-multicluster                     
+➜  ctl_plugin git:(main) ✗ mv kubectl-multicluster ~/go/bin/ 
+➜  ~ kubectl-multicluster list pods --clusterName=cluster3 --name=multiclusterresource-deployment-75d98bb7bd-xj5z5
+集群名称        NAME                                                    NAMESPACE       NODE            POD IP          状态    容器名                  容器镜像            
+cluster3        multiclusterresource-deployment-75d98bb7bd-xj5z5        default         vm-0-12-centos  10.244.29.32    Running example-container       nginx:1.19.0-alpine   
 ```
 
 ### 多集群下发资源

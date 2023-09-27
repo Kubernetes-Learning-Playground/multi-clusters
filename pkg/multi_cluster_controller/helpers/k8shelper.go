@@ -101,8 +101,7 @@ func K8sApply(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) ([]*
 			}
 		}
 		// 得到 gvk
-		obj, gvk, err := syaml.NewDecodingSerializer(unstructured.
-			UnstructuredJSONScheme).Decode(rawObj.Raw, nil, nil)
+		obj, gvk, err := syaml.NewDecodingSerializer(unstructured.UnstructuredJSONScheme).Decode(rawObj.Raw, nil, nil)
 		if err != nil {
 			return resList, err
 		}
