@@ -1,6 +1,7 @@
 package list
 
 import (
+	"fmt"
 	"github.com/goccy/go-json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
@@ -32,7 +33,8 @@ func Pods(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*WrapPod, 0)
-	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list_with_cluster", m)
+	url := fmt.Sprintf("http://localhost:%v/v1/list_with_cluster", common.ServerPort)
+	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -6,6 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/httpserver/service"
+	"k8s.io/klog/v2"
+	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
 var (
@@ -17,6 +20,18 @@ func HttpServer(ctx context.Context, opt *config.Options, dp *config.Dependencie
 	if !opt.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// 心跳检测健康机制
+	go func() {
+		h := &healthz.Handler{
+			Checks: map[string]healthz.Checker{
+				"healthz": healthz.Ping,
+			},
+		}
+		if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", opt.HealthPort), h); err != nil {
+			klog.Fatalf("Failed to start healthz endpoint: %v", err)
+		}
+	}()
 
 	RR = &ResourceController{
 		ListService: &service.ListService{

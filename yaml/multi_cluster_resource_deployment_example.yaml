@@ -31,13 +31,13 @@ spec:
    # 可自行填写多个集群
    placement:
      clusters:
-       - name: cluster1
-       - name: cluster2
-       - name: cluster3
+       - name: tencent1
+       - name: tencent2
+       - name: tencent4
    # 多集群间差异化配置
    customize:
      clusters:
-       - name: cluster1
+       - name: tencent1
          action:
            # 删除label
            - path: "/metadata/labels/app"
@@ -54,7 +54,7 @@ spec:
              op: "replace"
              value:
                - 2
-       - name: cluster2
+       - name: tencent2
          action:
            # 新增 annotations
            - path: "/metadata/annotations"
@@ -66,7 +66,7 @@ spec:
              op: "replace"
              value:
                - 1
-       - name: cluster3
+       - name: tencent4
          action:
            # 新增 annotations
            - path: "/metadata/annotations"

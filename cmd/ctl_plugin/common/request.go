@@ -7,7 +7,10 @@ import (
 	"net/http"
 )
 
-var HttpClient *Http
+var (
+	HttpClient *Http
+	ServerPort int
+)
 
 func init() {
 	HttpClient = &Http{

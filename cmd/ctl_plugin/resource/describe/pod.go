@@ -28,7 +28,8 @@ func Pods(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*v1.Pod, 0)
-	r, err := common.HttpClient.DoGet("http://localhost:8888/v1/list", m)
+	url := fmt.Sprintf("http://localhost:%v/v1/list", common.ServerPort)
+	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
 	}

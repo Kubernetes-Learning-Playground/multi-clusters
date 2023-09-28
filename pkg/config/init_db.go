@@ -12,7 +12,7 @@ type DbConfig struct {
 	User     string
 	Password string
 	Endpoint string
-	Table    string
+	Database string
 }
 
 func NewDbConfig(opt *Options) *DbConfig {
@@ -20,14 +20,14 @@ func NewDbConfig(opt *Options) *DbConfig {
 		User:     opt.User,
 		Password: opt.Password,
 		Endpoint: opt.Endpoint,
-		Table:    opt.Table,
+		Database: opt.Database,
 	}
 }
 
 func (dbc *DbConfig) InitDB() *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		dbc.User, dbc.Password, dbc.Endpoint, dbc.Table)
+		dbc.User, dbc.Password, dbc.Endpoint, dbc.Database)
 	gormdb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalln(err)

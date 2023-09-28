@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"log"
+	"strconv"
 )
 
 type CmdMetaData struct {
@@ -39,9 +40,13 @@ func main() {
 		SilenceUsage: true,
 	}
 
+	// 从配置文件获取端口信息
+	r := common.LoadConfigFile()
+	common.ServerPort, _ = strconv.Atoi(r.Server)
+
 	// 注册
 	MergeFlags(list.ListCmd, describe.DescribeCmd)
-
+	// 只需要加入 --clusterName=xxx, --name=xxx, 其他适配 kubectl
 	list.ListCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "")
 	list.ListCmd.Flags().StringVar(&common.Name, "name", "", "")
 

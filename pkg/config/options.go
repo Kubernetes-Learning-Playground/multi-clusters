@@ -6,10 +6,11 @@ type Options struct {
 	User       string
 	Password   string
 	Endpoint   string
-	Table      string
+	Database   string
 	ConfigPath string
 	Port       int
 	HealthPort int
+	CtlPort    int
 	DebugMode  bool
 }
 

@@ -50,14 +50,14 @@ func K8sDelete(json []byte, restConfig *rest.Config, mapper meta.RESTMapper) err
 				return err
 			}
 		}
-		// 得到gvk
+		// 得到 gvk
 		obj, gvk, err := syaml.NewDecodingSerializer(unstructured.
 			UnstructuredJSONScheme).Decode(rawObj.Raw, nil, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		//把obj 变成map[string]interface{}
+		// 把 obj 变成map[string]interface{}
 		unstructuredMap, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
 		if err != nil {
 			return nil

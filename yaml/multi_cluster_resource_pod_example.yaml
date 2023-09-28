@@ -21,19 +21,19 @@ spec:
        restartPolicy: Always
    placement:
      clusters:
-#       - name: cluster1
-       - name: cluster2
-       - name: cluster3
+       - name: tencent1
+       - name: tencent2
+       - name: tencent4
    # 可以不填写
    customize:
      clusters:
-       - name: cluster1
+       - name: tencent1
          action:
            - path: "/spec/containers/0/image"
              op: "replace"
              value:
                - "nginx:1.19.0-alpine"
-       - name: cluster2
+       - name: tencent2
          action:
            - path: "/metadata/annotations/example"
              value:
@@ -43,7 +43,7 @@ spec:
              value:
                - "nginx:1.19.0-alpine"
              op: "replace"
-       - name: cluster3
+       - name: tencent4
          action:
            - path: "/spec/containers/0/image"
              op: "replace"

@@ -92,5 +92,4 @@ func (mc *MultiClusterHandler) applyCrdToMasterCluster() {
 	if err != nil {
 		klog.Fatal(err)
 	}
-
 }

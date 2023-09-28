@@ -47,13 +47,14 @@ type MetaData struct {
 	Insecure bool `json:"insecure" yaml:"insecure"`
 	// ClusterName 集群名
 	ClusterName string `json:"clusterName" yaml:"clusterName"`
-	// isMaster 是否为主集群
+	// IsMaster 是否为主集群
 	IsMaster bool `json:"isMaster" yaml:"isMaster"`
-
+	// 监听的资源对象(用于多集群查询)
 	Resources []Resource `json:"resources" yaml:"resources"`
 }
 
 type Resource struct {
+	// GVR 标示， ex: v1/pods apps/v1/deployments
 	RType string `json:"rType" yaml:"rType"`
 }
 

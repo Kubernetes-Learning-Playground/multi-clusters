@@ -55,7 +55,7 @@ func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHa
 	return newMultiClusterHandler(sysConfig.Clusters, db)
 }
 
-// newMultiClusterHandler
+// newMultiClusterHandler 初始化各集群需要的资源
 func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClusterHandler, error) {
 
 	if len(clusters) == 0 {
@@ -114,7 +114,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 // StartWorkQueueHandler 启动所有 informerFactory 与 work queue
 func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 	for r := range mc.HandlerMap {
-		klog.Infof("[%s] informer watcher start...", r)
+		klog.Infof("[%s] informer watcher start..\n", r)
 		mc.HandlerMap[r].Start(ctx)
 		mc.InformerFactoryMap[r].Start(wait.NeverStop)
 		mc.InformerFactoryMap[r].WaitForCacheSync(wait.NeverStop)
@@ -124,7 +124,7 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 // StartOperatorManager 初始化控制器管理器
 func (mc *MultiClusterHandler) StartOperatorManager() error {
 	logf.SetLogger(zap.New())
-	// 1. 初始化管理器
+	// 1. 初始化管理器，使用
 	mgr, err := manager.New(mc.RestConfigMap[mc.MasterCluster],
 		manager.Options{
 			Logger: logf.Log.WithName("multi-cluster-operator"),

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-cluster-operator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: multi-cluster-operator
+  template:
+    metadata:
+      labels:
+        app: multi-cluster-operator
+    spec:
+      serviceAccountName: multi-cluster-operator-sa
+      nodeName: vm-0-16-centos  # 只调度到这个节点上，因为测试集群只有此node
+      containers:
+        - name: multi-cluster-operator
+          image: multi-cluster-operator:v1
+          imagePullPolicy: IfNotPresent
+          args:
+            - --db-user=root
+            - --db-password=123456
+            - --db-endpoint=10.0.0.16:30110
+            - --db-database=resources
+            - --debug-mode=true
+            - --config=/app/file/config.yaml
+            - --ctl-port=31888
+          env:
+            - name: "Release"
+              value: "1"
+          volumeMounts:
+            - name: tencent1
+              mountPath: /app/file/config-tencent1
+            - name: tencent2
+              mountPath: /app/file/config-tencent2
+            - name: tencent4
+              mountPath: /app/file/config-tencent4
+            - name: config
+              mountPath: /app/file/config.yaml
+      # 需要挂载用户自己监听的 kubeconfig 文件
+      volumes:
+        - name: tencent1
+          hostPath:
+            path: /root/multi_resource_operator/resources/config-tencent1
+        - name: tencent2
+          hostPath:
+            path: /root/multi_resource_operator/resources/config-tencent2
+        - name: tencent4
+          hostPath:
+            path: /root/multi_resource_operator/resources/config-tencent4
+        - name: config
+          hostPath:
+            path: /root/multi_resource_operator/config.yaml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multi-cluster-operator-svc
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 8888      # 容器端口
+      nodePort: 31888 # 对外暴露的端口
+      name: server
+    - port: 29999     # 健康检查端口
+      nodePort: 31889 # 对外暴露的端口
+      name: health
+  selector:
+    app: multi-cluster-operator
