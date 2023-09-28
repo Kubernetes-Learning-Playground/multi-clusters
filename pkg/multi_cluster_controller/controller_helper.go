@@ -84,8 +84,8 @@ func (mc *MultiClusterHandler) getCustomizeClusters(res *v1alpha1.MultiClusterRe
 			var patchInterface interface{}
 			var is bool
 			for _, value := range action.Value {
-				// 判断是否是 string 类型，如果是 会有两种情况
-				// 1. 输入是 类似 "name=redis"  or  "image=xxx"
+				// 判断是否是 string 类型，如果是会有两种情况
+				// 1. 输入是 类似 "name=redis" or "image=xxx"
 				// 所以需要分割存入 map
 				// 2. 直接是普通 string
 				if dd, ok := value.(string); ok {

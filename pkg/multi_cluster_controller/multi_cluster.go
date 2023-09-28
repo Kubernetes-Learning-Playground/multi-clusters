@@ -44,14 +44,12 @@ type MultiClusterHandler struct {
 
 // NewMultiClusterHandlerFromConfig 输入配置文件目录，返回MultiClusterInformer对象
 func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHandler, error) {
-
 	// 解析 config
 	sysConfig, err := config.BuildConfig(path)
 	if err != nil {
 		klog.Error("load config error: ", err)
 		return nil, err
 	}
-
 	return newMultiClusterHandler(sysConfig.Clusters, db)
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/practice/multi_resource/cmd/ctl_plugin/resource/list"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"log"
+	"k8s.io/klog/v2"
 	"strconv"
 )
 
@@ -21,13 +21,11 @@ var (
 )
 
 func init() {
-
 	cmdMetaData = &CmdMetaData{
 		Use:     "kubectl [flags]",
 		Short:   "kubectl [flags]",
 		Example: "kubectl [flags]",
 	}
-
 }
 
 func main() {
@@ -47,11 +45,11 @@ func main() {
 	// 注册
 	MergeFlags(list.ListCmd, describe.DescribeCmd)
 	// 只需要加入 --clusterName=xxx, --name=xxx, 其他适配 kubectl
-	list.ListCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "")
-	list.ListCmd.Flags().StringVar(&common.Name, "name", "", "")
+	list.ListCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "--clusterName=xxx")
+	list.ListCmd.Flags().StringVar(&common.Name, "name", "", "--name=xxx")
 
-	describe.DescribeCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "")
-	describe.DescribeCmd.Flags().StringVar(&common.Name, "name", "", "")
+	describe.DescribeCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "--clusterName=xxx")
+	describe.DescribeCmd.Flags().StringVar(&common.Name, "name", "", "--name=xxx")
 
 	// 主command需要加入子command
 	mainCmd.AddCommand(list.ListCmd, describe.DescribeCmd)
@@ -59,9 +57,8 @@ func main() {
 	err := mainCmd.Execute() // 主命令执行
 
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
-
 }
 
 var cfgFlags *genericclioptions.ConfigFlags

@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"log"
+	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
 	"time"
 )
@@ -79,7 +79,7 @@ func NewResource(obj runtime.Object, restmapper meta.RESTMapper, clusterName str
 	return retObj, nil
 }
 
-// prepare  譬如做一些字符串的赋值啊、过滤啊。
+// prepare 事前准备
 func (r *Resources) prepare() {
 	// 如果有 OwnerReferences，则设置
 	if len(r.obj.GetOwnerReferences()) > 0 {
@@ -87,11 +87,11 @@ func (r *Resources) prepare() {
 	}
 	// 获取md5值
 	r.Hash = util.HashObject(r.objbytes)
-	// 数据库为 Json类型
+	// 数据库为 Json 类型
 	//r.Object = string(r.objbytes)
 	objJson, err := yaml.YAMLToJSON(r.objbytes)
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 	r.Object = string(objJson)
 }

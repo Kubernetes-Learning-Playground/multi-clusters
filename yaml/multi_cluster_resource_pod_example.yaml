@@ -36,13 +36,13 @@ spec:
        - name: tencent2
          action:
            - path: "/metadata/annotations/example"
+             op: "add"
              value:
                - "example"
-             op: "add"
            - path: "/spec/containers/0/image"
+             op: "replace"
              value:
                - "nginx:1.19.0-alpine"
-             op: "replace"
        - name: tencent4
          action:
            - path: "/spec/containers/0/image"

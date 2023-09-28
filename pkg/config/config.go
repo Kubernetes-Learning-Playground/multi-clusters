@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/go-yaml/yaml"
-	"log"
+	"k8s.io/klog/v2"
 	"os"
 )
 
@@ -18,7 +18,7 @@ func NewConfig() *Config {
 func loadConfigFile(path string) []byte {
 	b, err := os.ReadFile(path)
 	if err != nil {
-		log.Println(err)
+		klog.Error("read file error: ", err)
 		return nil
 	}
 	return b
@@ -27,7 +27,6 @@ func loadConfigFile(path string) []byte {
 func BuildConfig(path string) (*Config, error) {
 	config := NewConfig()
 	if b := loadConfigFile(path); b != nil {
-
 		err := yaml.Unmarshal(b, config)
 		if err != nil {
 			return nil, err
@@ -36,7 +35,6 @@ func BuildConfig(path string) (*Config, error) {
 	} else {
 		return nil, fmt.Errorf("load config file error")
 	}
-
 }
 
 // MetaData 集群对象所需的信息
@@ -49,7 +47,7 @@ type MetaData struct {
 	ClusterName string `json:"clusterName" yaml:"clusterName"`
 	// IsMaster 是否为主集群
 	IsMaster bool `json:"isMaster" yaml:"isMaster"`
-	// 监听的资源对象(用于多集群查询)
+	// Resources 监听的资源对象(用于多集群查询)
 	Resources []Resource `json:"resources" yaml:"resources"`
 }
 

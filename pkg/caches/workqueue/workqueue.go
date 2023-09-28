@@ -81,7 +81,7 @@ func (c *wq) ReQueue(obj *QueueResource) error {
 	// 如果次数大于最大重试次数，直接丢弃
 	c.Forget(obj)
 	c.Done(obj)
-	return errors.New("This object has been requeued for many times, but still fails. ")
+	return errors.New("This object has been requeued for many times, but still fails.")
 }
 
 func (c *wq) Close() {

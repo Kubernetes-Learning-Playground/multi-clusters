@@ -20,23 +20,25 @@ spec:
           image: multi-cluster-operator:v1
           imagePullPolicy: IfNotPresent
           args:
-            - --db-user=root
-            - --db-password=123456
-            - --db-endpoint=10.0.0.16:30110
-            - --db-database=resources
-            - --debug-mode=true
-            - --config=/app/file/config.yaml
-            - --ctl-port=31888
+            - --db-user=root                     # db 用户
+            - --db-password=123456               # db 用户密码
+            - --db-endpoint=10.0.0.16:30110      # db 地址
+            - --db-database=resources            # db 数据库
+            - --debug-mode=true                  # 模式
+            - --config=/app/file/config.yaml     # 配置文件路径
+            - --ctl-port=31888                   # 命令行读取的端口
           env:
             - name: "Release"
               value: "1"
           volumeMounts:
+            # 挂载不同集群的 kubeconfig
             - name: tencent1
               mountPath: /app/file/config-tencent1
             - name: tencent2
               mountPath: /app/file/config-tencent2
             - name: tencent4
               mountPath: /app/file/config-tencent4
+            # 配置文件 config.yaml
             - name: config
               mountPath: /app/file/config.yaml
       # 需要挂载用户自己监听的 kubeconfig 文件

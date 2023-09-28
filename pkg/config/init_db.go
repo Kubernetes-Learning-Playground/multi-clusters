@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"log"
+	"k8s.io/klog/v2"
 	"time"
 )
 
@@ -30,11 +30,11 @@ func (dbc *DbConfig) InitDB() *gorm.DB {
 		dbc.User, dbc.Password, dbc.Endpoint, dbc.Database)
 	gormdb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 	db, err := gormdb.DB()
 	if err != nil {
-		log.Fatalln(err)
+		klog.Fatalln(err)
 	}
 	db.SetConnMaxLifetime(time.Minute * 10)
 	db.SetMaxIdleConns(10)

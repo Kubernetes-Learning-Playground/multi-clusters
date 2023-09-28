@@ -73,14 +73,12 @@ func (r *ResourceHandler) handleObject(obj *workqueue.QueueResource) error {
 			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
-
 	case workqueue.UpdateEvent:
 		err = res.Update(r.DB)
 		if err != nil {
 			klog.Errorf("[%s] [%s] object error: %s\n", r.clusterName, obj.EventType, err)
 			return err
 		}
-
 	case workqueue.DeleteEvent:
 		err = res.Delete(r.DB)
 		if err != nil {

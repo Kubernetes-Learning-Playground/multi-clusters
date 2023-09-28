@@ -83,7 +83,6 @@ func main() {
 	go func() {
 		defer util.HandleCrash()
 		klog.Info("operator manager start...")
-
 		if err = mch.StartOperatorManager(); err != nil {
 			errC <- err
 		}

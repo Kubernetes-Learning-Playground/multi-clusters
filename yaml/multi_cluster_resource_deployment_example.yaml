@@ -58,9 +58,9 @@ spec:
          action:
            # 新增 annotations
            - path: "/metadata/annotations"
+             op: "add"
              value:
                - "foo=bar"
-             op: "add"
            # 修改副本数
            - path: "/spec/replicas"
              op: "replace"
@@ -70,14 +70,14 @@ spec:
          action:
            # 新增 annotations
            - path: "/metadata/annotations"
+             op: "add"
              value:
                - "app=bar"
-             op: "add"
            # 替换镜像
            - path: "/spec/template/spec/containers/0/image"
+             op: "replace"
              value:
                - "nginx:1.19.0-alpine"
-             op: "replace"
 
            # 不支持新增 sidecar 容器，重入会有报错问题，reco
 #           - path: "/spec/template/spec/containers/1"

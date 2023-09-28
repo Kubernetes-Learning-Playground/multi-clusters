@@ -1,24 +1,24 @@
 clusters:                     # 集群列表
   - metadata:
       clusterName: tencent1   # 自定义集群名
-      insecure: true          # 是否开启跳过tls证书认证
-      configPath: /app/file/config-tencent1 # kube config配置文件地址
+      insecure: true          # 是否开启跳过 tls 证书认证
+      configPath: /app/file/config-tencent1 # kube config 配置文件地址
       resources:
         - rType: apps/v1/deployments
         - rType: core/v1/pods
         - rType: core/v1/configmaps
   - metadata:
       clusterName: tencent2   # 自定义集群名
-      insecure: true          # 是否开启跳过tls证书认证
-      configPath: /app/file/config-tencent2 # kube config配置文件地址
+      insecure: true          # 是否开启跳过 tls 证书认证
+      configPath: /app/file/config-tencent2 # kube config 配置文件地址
       resources:
         - rType: apps/v1/deployments
         - rType: core/v1/pods
         - rType: core/v1/configmaps
   - metadata:
       clusterName: tencent4   # 自定义集群名
-      insecure: true          # 是否开启跳过tls证书认证
-      configPath: /app/file/config-tencent4 # kube config配置文件地址
+      insecure: true          # 是否开启跳过 tls 证书认证
+      configPath: /app/file/config-tencent4 # kube config 配置文件地址
       isMaster: true          # 标示主集群
       resources:
         - rType: apps/v1/deployments
