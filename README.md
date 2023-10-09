@@ -30,6 +30,7 @@ clusters:                     # Cluster list
   - metadata:
       clusterName: tencent2
       insecure: true
+      isMaster: true          # master cluster
       configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
@@ -142,7 +143,15 @@ server: 31888
 ```
 
 ### Delivering resources to multiple clusters
+
+Idea: The above configuration file will specify the main cluster (isMaster) field. The main cluster is used to deploy the operator controller. That is, only the main cluster in multiple clusters can deliver resources and delete resources, and other clusters can only passively receive them.
+
+![](./image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-11-2343.png?raw=true)
+
 - The crd resource object is as follows. For more information, please refer to [Reference](./yaml)
+  - template field: resource template, fill in the required k8s original resources internally
+  - placement field: select the cluster to be distributed
+  - customize field: differentiated configuration between clusters
 ```yaml
 apiVersion: mulitcluster.practice.com/v1alpha1
 kind: MultiClusterResource
@@ -166,15 +175,16 @@ spec:
            imagePullPolicy: IfNotPresent
            name: busybox
        restartPolicy: Always
-     # You can choose different clusters for delivery. If modified,
-     # Resources for specific clusters will also be added or deleted accordingly.
-     # Note: If placement is deleted, the corresponding cluster of customize also needs to be deleted! !
+   # You can choose different clusters for delivery. If modified,
+   # Resources for specific clusters will also be added or deleted accordingly.
+   # Note: If placement is deleted, the corresponding cluster of customize also needs to be deleted! !
    placement:
      clusters:
        - name: tencent1
        - name: tencent2
        - name: tencent4
    # Can be blank
+   # Differentiated configuration between multiple clusters
    customize:
      clusters:
        - name: tencent1
@@ -214,4 +224,53 @@ tencent2        multicluster-pod        default         vm-0-16-centos  10.244.0
 tencent4        multiclusterresource-deployment default         3       3               3       
 tencent1        multiclusterresource-deployment default         2       2               2       
 tencent2        multiclusterresource-deployment default         1       1               1       
+```
+
+### Deploy application
+Note: The project depends on mysql. It is recommended to use the mariadb:10.5 image. The dependency configuration is set in the [deploy.yaml](./deploy/deploy.yaml) args field.
+1. docker image
+```bash
+[root@VM-0-16-centos multi_resource_operator]# docker build -t multi-cluster-operator:v1 .
+Sending build context to Docker daemon  1.262MB
+Step 1/17 : FROM golang:1.20.7-alpine3.17 as builder
+ ---> 864c54ad9c0d
+Step 2/17 : WORKDIR /app
+ ---> Using cache
+ ---> b1cd56e3903a
+Step 3/17 : COPY go.mod go.mod
+```
+2. Deploy application deployment
+```bash
+[root@VM-0-16-centos multi_resource_operator]# kubectl apply -f deploy/rbac.yaml
+serviceaccount/multi-cluster-operator-sa unchanged
+clusterrole.rbac.authorization.k8s.io/multi-cluster-operator-clusterrole unchanged
+clusterrolebinding.rbac.authorization.k8s.io/multi-cluster-operator-ClusterRoleBinding unchanged
+[root@VM-0-16-centos multi_resource_operator]# kubectl apply -f deploy/deploy.yaml
+deployment.apps/multi-cluster-operator unchanged
+service/multi-cluster-operator-svc unchanged
+```
+3. use kubectl log or exec check project application
+```bash
+[root@VM-0-16-centos ~]# kubectl get pods | grep multi-cluster-operator
+multi-cluster-operator-7c477d7b58-z4bbd            1/1     Running            0          10d
+[root@VM-0-16-centos ~]# kubectl logs multi-cluster-operator-7c477d7b58-z4bbd
+I0928 07:29:45.956381       1 init_ctl_config.go:37] multi-cluster-ctl config file created successfully.
+I0928 07:29:46.045113       1 multi_cluster.go:117] [tencent1] informer watcher start..
+I0928 07:29:46.045147       1 handler.go:27] worker queue start...
+I0928 07:29:46.146385       1 multi_cluster.go:117] [tencent2] informer watcher start..
+I0928 07:29:46.146407       1 handler.go:27] worker queue start...
+I0928 07:29:46.252256       1 multi_cluster.go:117] [tencent4] informer watcher start..
+I0928 07:29:46.252275       1 handler.go:27] worker queue start...
+I0928 07:29:46.353115       1 main.go:85] operator manager start...
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+```
+4. Check whether the command line configuration file exists
+```bash
+[root@VM-0-16-centos multi_resource_operator]# cd
+[root@VM-0-16-centos ~]# cd .multi-cluster-operator/
+[root@VM-0-16-centos .multi-cluster-operator]# pwd
+/root/.multi-cluster-operator
+[root@VM-0-16-centos .multi-cluster-operator]# cat config
+server: 31888
+[root@VM-0-16-centos .multi-cluster-operator]#
 ```

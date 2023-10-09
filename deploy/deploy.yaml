@@ -14,11 +14,12 @@ spec:
         app: multi-cluster-operator
     spec:
       serviceAccountName: multi-cluster-operator-sa
-      nodeName: vm-0-16-centos  # 只调度到这个节点上，因为测试集群只有此node
+      nodeName: vm-0-16-centos  # 只调度到这个节点上，因为测试集群只有此node，请自行修改
       containers:
         - name: multi-cluster-operator
           image: multi-cluster-operator:v1
           imagePullPolicy: IfNotPresent
+          # args 启动参数请自行修改
           args:
             - --db-user=root                     # db 用户
             - --db-password=123456               # db 用户密码
@@ -31,7 +32,7 @@ spec:
             - name: "Release"
               value: "1"
           volumeMounts:
-            # 挂载不同集群的 kubeconfig
+            # 挂载不同集群的 kubeconfig，请自行修改
             - name: tencent1
               mountPath: /app/file/config-tencent1
             - name: tencent2
@@ -42,6 +43,7 @@ spec:
             - name: config
               mountPath: /app/file/config.yaml
       # 需要挂载用户自己监听的 kubeconfig 文件
+      # 请自行修改
       volumes:
         - name: tencent1
           hostPath:
@@ -55,7 +57,6 @@ spec:
         - name: config
           hostPath:
             path: /root/multi_resource_operator/config.yaml
-
 ---
 apiVersion: v1
 kind: Service

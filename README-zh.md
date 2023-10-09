@@ -29,6 +29,7 @@ clusters:                     # 集群列表
   - metadata:
       clusterName: tencent2   # 自定义集群名
       insecure: true          # 是否开启跳过tls证书认证
+      isMaster: true          # 标示主集群
       configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
       resources:
         - rType: apps/v1/deployments
@@ -141,7 +142,14 @@ server: 31888
 ```
 
 ### 多集群下发资源
+思路：上述的配置文件中会指定主集群(isMaster)字段，主集群用于部署 operator 控制器，即：多集群中只有主集群能下发资源与删除资源，其他集群都只能被动接收。
+
+![](./image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-11-2343.png?raw=true)
+
 - crd 资源对象如下，更多信息可以参考 [参考](./yaml)
+  - template 字段：资源模版，内部填写需要的 k8s 原始资源
+  - placement 字段：选择下发集群
+  - customize 字段：集群间差异化配置
 ```yaml
 apiVersion: mulitcluster.practice.com/v1alpha1
 kind: MultiClusterResource
@@ -174,6 +182,7 @@ spec:
        - name: tencent2
        - name: tencent4
    # 可以不填写
+   # 多集群间差异化配置
    customize:
      clusters:
        - name: tencent1
@@ -213,4 +222,53 @@ tencent2        multicluster-pod        default         vm-0-16-centos  10.244.0
 tencent4        multiclusterresource-deployment default         3       3               3       
 tencent1        multiclusterresource-deployment default         2       2               2       
 tencent2        multiclusterresource-deployment default         1       1               1       
+```
+
+### 部署应用
+注：项目依赖 mysql，推荐使用  mariadb:10.5 镜像，依赖配置在 [deploy.yaml](./deploy/deploy.yaml) args 字段中设置。
+1. docker 镜像
+```bash
+[root@VM-0-16-centos multi_resource_operator]# docker build -t multi-cluster-operator:v1 .
+Sending build context to Docker daemon  1.262MB
+Step 1/17 : FROM golang:1.20.7-alpine3.17 as builder
+ ---> 864c54ad9c0d
+Step 2/17 : WORKDIR /app
+ ---> Using cache
+ ---> b1cd56e3903a
+Step 3/17 : COPY go.mod go.mod
+```
+2. 部署应用 deployment
+```bash
+[root@VM-0-16-centos multi_resource_operator]# kubectl apply -f deploy/rbac.yaml
+serviceaccount/multi-cluster-operator-sa unchanged
+clusterrole.rbac.authorization.k8s.io/multi-cluster-operator-clusterrole unchanged
+clusterrolebinding.rbac.authorization.k8s.io/multi-cluster-operator-ClusterRoleBinding unchanged
+[root@VM-0-16-centos multi_resource_operator]# kubectl apply -f deploy/deploy.yaml
+deployment.apps/multi-cluster-operator unchanged
+service/multi-cluster-operator-svc unchanged
+```
+3. 使用 kubectl log or exec 查看项目应用
+```bash
+[root@VM-0-16-centos ~]# kubectl get pods | grep multi-cluster-operator
+multi-cluster-operator-7c477d7b58-z4bbd            1/1     Running            0          10d
+[root@VM-0-16-centos ~]# kubectl logs multi-cluster-operator-7c477d7b58-z4bbd
+I0928 07:29:45.956381       1 init_ctl_config.go:37] multi-cluster-ctl config file created successfully.
+I0928 07:29:46.045113       1 multi_cluster.go:117] [tencent1] informer watcher start..
+I0928 07:29:46.045147       1 handler.go:27] worker queue start...
+I0928 07:29:46.146385       1 multi_cluster.go:117] [tencent2] informer watcher start..
+I0928 07:29:46.146407       1 handler.go:27] worker queue start...
+I0928 07:29:46.252256       1 multi_cluster.go:117] [tencent4] informer watcher start..
+I0928 07:29:46.252275       1 handler.go:27] worker queue start...
+I0928 07:29:46.353115       1 main.go:85] operator manager start...
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+```
+4. 查看命令行配置文件是否存在
+```bash
+[root@VM-0-16-centos multi_resource_operator]# cd
+[root@VM-0-16-centos ~]# cd .multi-cluster-operator/
+[root@VM-0-16-centos .multi-cluster-operator]# pwd
+/root/.multi-cluster-operator
+[root@VM-0-16-centos .multi-cluster-operator]# cat config
+server: 31888
+[root@VM-0-16-centos .multi-cluster-operator]#
 ```
