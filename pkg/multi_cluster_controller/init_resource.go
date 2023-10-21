@@ -73,7 +73,7 @@ func getMasterClusterClient() kubernetes.Interface {
 }
 
 // applyCrdToMasterCluster 在主集群中 apply Crd
-func (mc *MultiClusterHandler) applyCrdToMasterCluster() {
+func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 	if mc.MasterCluster == "" {
 		klog.Fatal("masterCluster is empty")
 	}

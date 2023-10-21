@@ -1,4 +1,4 @@
-## kubernetes简易多集群方案
+## kubernetes 简易多集群方案
 <a href="./README.md">English</a> | <a href="./README-zh.md">简体中文</a>
 ### 项目思路与功能
 项目背景：在目前云原生中，会常有需要同时操作"多集群"的场景，不论是多集群"查询"或是"分发资源"等操作，本项目采用 **informer** + **operator** 进行扩展封装，
@@ -14,13 +14,13 @@
 7. 支持多集群**差异化配置**
 
 ### 配置文件
-- **重要** 配置文件可参考config.yaml中配置[这里](./config.yaml)，调用方只需要关注配置文件中的内容即可。
+- **重要** 配置文件可参考 config.yaml 中配置[这里](./config.yaml)，调用方只需要关注配置文件中的内容即可。
 ```yaml
 clusters:                     # 集群列表
   - metadata:
       clusterName: tencent1   # 自定义集群名
-      insecure: false          # 是否开启跳过tls证书认证
-      configPath: /Users/zhenyu.jiang/.kube/config # kube config配置文件地址
+      insecure: false         # 是否开启跳过 tls 证书认证
+      configPath: /Users/zhenyu.jiang/.kube/config # kube config 配置文件地址
       # 资源类型
       resources:
         - rType: apps/v1/deployments
@@ -28,7 +28,7 @@ clusters:                     # 集群列表
         - rType: core/v1/configmaps
   - metadata:
       clusterName: tencent2   # 自定义集群名
-      insecure: true          # 是否开启跳过tls证书认证
+      insecure: true          # 是否开启跳过 tls 证书认证
       isMaster: true          # 标示主集群
       configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
       resources:
@@ -78,7 +78,7 @@ tencent2        dep-test-8b4fcc97-pzbqd                                 default 
 tencent2        dep-test-8b4fcc97-jkkx7                                 default                 10.244.0.127    Running         dep-test-container              nginx:1.18-alpine                                                                    
 tencent2        dep-test-8b4fcc97-wl6td                                 default                 10.244.0.128    Running         dep-test-container              nginx:1.18-alpine                                               
 
-# 不指定clusterName，默认查询所有集群
+# 不指定 clusterName，默认查询所有集群
 ➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list pods                           
 集群名称         NAME                                                            NAMESPACE                               NODE                    POD IP          状态             容器名                        容器静像                                                                            
 tencent1        patch-deployment-7877dfff-975bn                                 default                                 minikube                10.244.1.40     Running         nginx                        nginx:1.15.2                                                                            

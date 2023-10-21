@@ -24,7 +24,7 @@ func NewDbConfig(opt *Options) *DbConfig {
 	}
 }
 
-func (dbc *DbConfig) InitDB() *gorm.DB {
+func (dbc *DbConfig) InitDBOrDie() *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbc.User, dbc.Password, dbc.Endpoint, dbc.Database)

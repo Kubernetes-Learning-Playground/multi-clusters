@@ -16,7 +16,7 @@ var (
 	dbEndpoint string // db ip:端口
 	dbDatabase string // db
 	configPath string // 配置文件路径
-	debugMode  bool   // 是否debug模式
+	debugMode  bool   // 是否 debug 模式
 	port       int    // 端口
 	ctlPort    int    // ctl 需要的端口
 	healthPort int    // 健康检查端口
@@ -55,7 +55,7 @@ func main() {
 	config.CreateCtlFile(opt)
 
 	// 初始化数据库
-	db := config.NewDbConfig(opt).InitDB()
+	db := config.NewDbConfig(opt).InitDBOrDie()
 
 	// 依赖项
 	dp := &config.Dependencies{

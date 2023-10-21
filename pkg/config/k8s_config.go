@@ -42,7 +42,7 @@ func (kc *K8sConfig) k8sRestConfigDefaultOrDie(insecure bool) *rest.Config {
 	return config
 }
 
-// initDynamicClientOrDie 初始化DynamicClient
+// initDynamicClientOrDie 初始化 DynamicClient
 func (kc *K8sConfig) initDynamicClientOrDie() dynamic.Interface {
 	client, err := dynamic.NewForConfig(kc.k8sRestConfigDefaultOrDie(kc.insecure))
 	if err != nil {

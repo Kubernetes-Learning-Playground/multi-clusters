@@ -133,7 +133,7 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 		return err
 	}
 	// 2. 安装 CRD 资源对象
-	mc.applyCrdToMasterCluster()
+	mc.applyCrdToMasterClusterOrDie()
 
 	// 3. 注册进入序列化表
 	err = v1alpha1.SchemeBuilder.AddToScheme(mgr.GetScheme())

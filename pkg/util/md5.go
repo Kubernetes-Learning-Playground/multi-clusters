@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// HashObject 序列化内容进行md5
+// HashObject 序列化内容进行 md5
 func HashObject(data []byte) string {
 	has := md5.Sum(data)
 	return fmt.Sprintf("%x", has)
