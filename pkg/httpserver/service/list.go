@@ -67,3 +67,33 @@ func (list *ListService) List(name, namespace, cluster string, labels map[string
 
 	return objList, err
 }
+
+// ListCluster 从数据库获取查询集群结果
+func (list *ListService) ListCluster(name string, limit int) ([]store.Cluster, error) {
+	ret := make([]store.Cluster, 0)
+
+	// gvr 一定会传入
+	db := list.DB.Model(&store.Cluster{})
+
+	// 其他查询字段自由传入
+
+	if name != "" {
+		db = db.Where("name=?", name)
+	}
+
+	if limit != 0 {
+		db = db.Limit(limit)
+	}
+
+	err := db.Order("create_at desc").Find(&ret).Error
+	if err != nil {
+		return nil, err
+	}
+
+	objList := make([]store.Cluster, len(ret))
+	for i, res := range ret {
+		objList[i] = res
+	}
+
+	return objList, err
+}

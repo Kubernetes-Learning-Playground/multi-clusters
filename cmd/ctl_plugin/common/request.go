@@ -21,8 +21,9 @@ func init() {
 }
 
 var (
-	Cluster string
-	Name    string
+	Cluster       string
+	Name          string
+	CustomizePort string
 )
 
 type Http struct {
@@ -49,11 +50,11 @@ func (c *Http) DoGet(url string, queryParams map[string]string) ([]byte, error) 
 	}
 
 	body, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
 		// 处理读取响应主体时的错误
 		return nil, fmt.Errorf("http response readall error: %v\n", err)
 	}
-	defer resp.Body.Close()
 
 	return body, nil
 }

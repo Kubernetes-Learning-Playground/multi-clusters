@@ -43,6 +43,8 @@ func init() {
 				err = Deployments(cluster, name, ns)
 			case "configmaps":
 				err = Configmaps(cluster, name, ns)
+			case "clusters":
+				err = Clusters(name)
 			default:
 				return fmt.Errorf("Unsupport resource: %s\n", resource)
 			}

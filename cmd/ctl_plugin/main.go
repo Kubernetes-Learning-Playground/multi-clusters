@@ -22,9 +22,9 @@ var (
 
 func init() {
 	cmdMetaData = &CmdMetaData{
-		Use:     "kubectl [flags]",
-		Short:   "kubectl [flags]",
-		Example: "kubectl [flags]",
+		Use:     "kubectl-multicluster [flags]",
+		Short:   "kubectl-multicluster [flags]",
+		Example: "kubectl-multicluster [flags]",
 	}
 }
 

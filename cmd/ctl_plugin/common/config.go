@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// CtlConfig
+// CtlConfig 命令行配置文件
 type CtlConfig struct {
 	// Server 端口
 	Server string `yaml:"server"`

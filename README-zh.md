@@ -4,6 +4,11 @@
 项目背景：在目前云原生中，会常有需要同时操作"多集群"的场景，不论是多集群"查询"或是"分发资源"等操作，本项目采用 **informer** + **operator** 进行扩展封装，
 实现**多集群**且**多资源**方案。
 
+此外，多集群思路主要分为下列两种，本项目也是基于此两种分类方法进行开发:
+1. 多集群查询
+2. 多集群下发
+
+
 支持功能：
 1. 支持"多集群"配置
 2. 支持"多资源"配置
@@ -15,6 +20,7 @@
 
 ### 配置文件
 - **重要** 配置文件可参考 config.yaml 中配置[这里](./config.yaml)，调用方只需要关注配置文件中的内容即可。
+- 此配置文件在 deployment 部署时需要挂载 [参考](./deploy/deploy.yaml) 中 volumes 位置(name: config 的挂载)
 ```yaml
 clusters:                     # 集群列表
   - metadata:
@@ -226,6 +232,7 @@ tencent2        multiclusterresource-deployment default         1       1       
 
 ### 部署应用
 注：项目依赖 mysql，推荐使用  mariadb:10.5 镜像，依赖配置在 [deploy.yaml](./deploy/deploy.yaml) args 字段中设置。
+注：部署前需要先创建 mysql 对应的库与表，表结构可参考 [mysql 表结构](./mysql/resources.sql)
 1. docker 镜像
 ```bash
 [root@VM-0-16-centos multi_resource_operator]# docker build -t multi-cluster-operator:v1 .

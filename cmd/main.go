@@ -28,7 +28,7 @@ func main() {
 	flag.StringVar(&dbPassword, "db-password", "1234567", "db password for project")
 	flag.StringVar(&dbEndpoint, "db-endpoint", "127.0.0.1:3306", "db endpoint for project")
 	flag.StringVar(&dbDatabase, "db-database", "testdb", "db table for project")
-	flag.StringVar(&configPath, "config", "./config.yaml", "kubeconfig path for k8s cluster")
+	flag.StringVar(&configPath, "config", "resources/config_home_test.yaml", "kubeconfig path for k8s cluster")
 	flag.BoolVar(&debugMode, "debug-mode", false, "whether to use debug mode")
 	flag.IntVar(&port, "server-port", 8888, "")
 	flag.IntVar(&healthPort, "health-check-port", 29999, "")
@@ -66,12 +66,18 @@ func main() {
 	if err != nil {
 		klog.Fatal(err)
 	}
+	// 初始化集群实例
+	err = mch.InitClusterToDB(db)
+	if err != nil {
+		klog.Fatal(err)
+	}
 
 	// 启动多集群 handler
 	mch.StartWorkQueueHandler(ctx)
 
 	errC := make(chan error)
 
+	// 启动 http server
 	go func() {
 		defer util.HandleCrash()
 		klog.Info("httpserver start...")
@@ -80,6 +86,7 @@ func main() {
 		}
 	}()
 
+	// 启动 operator 管理器
 	go func() {
 		defer util.HandleCrash()
 		klog.Info("operator manager start...")

@@ -68,3 +68,21 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 	}
 	c.JSON(200, list)
 }
+
+// ListCluster 查询接口
+func (r *ResourceController) ListCluster(c *gin.Context) {
+	// 接口传入参数
+	name := c.DefaultQuery("name", "")
+	limit := c.DefaultQuery("limit", "10")
+
+	ll, _ := strconv.Atoi(limit)
+	// 获取列表
+	list, err := r.ListService.ListCluster(name, ll)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err})
+		return
+	}
+	c.JSON(200, list)
+	return
+}
+

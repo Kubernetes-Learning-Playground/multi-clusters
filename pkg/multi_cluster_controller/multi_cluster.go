@@ -6,8 +6,10 @@ import (
 	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/caches"
 	"github.com/practice/multi_resource/pkg/config"
+	"github.com/practice/multi_resource/pkg/store"
 	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
@@ -21,6 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"time"
 )
 
 // MultiClusterHandler 多集群缓存
@@ -117,6 +120,34 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 		mc.InformerFactoryMap[r].Start(wait.NeverStop)
 		mc.InformerFactoryMap[r].WaitForCacheSync(wait.NeverStop)
 	}
+}
+
+// InitClusterToDB 初始化集群实例到数据库
+func (mc *MultiClusterHandler) InitClusterToDB(db *gorm.DB) error {
+
+	for k, _ := range mc.HandlerMap {
+		var c *store.Cluster
+		// 如果 k 跟 MasterCluster 字段相同，认定此集群是 master 集群
+		if k == mc.MasterCluster {
+			c = store.NewCluster(k, true)
+		} else {
+			c = store.NewCluster(k, false)
+		}
+
+		err := db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "name"}},
+			DoUpdates: clause.Assignments(
+				map[string]interface{}{
+					"status":    "Running",
+					"create_at": time.Now(),
+				}),
+		}).Create(c).Error
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
 }
 
 // StartOperatorManager 初始化控制器管理器

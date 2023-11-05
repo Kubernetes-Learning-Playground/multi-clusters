@@ -228,6 +228,7 @@ tencent2        multiclusterresource-deployment default         1       1       
 
 ### Deploy application
 Note: The project depends on mysql. It is recommended to use the mariadb:10.5 image. The dependency configuration is set in the [deploy.yaml](./deploy/deploy.yaml) args field.
+Note: Before deployment, you need to create the library and table corresponding to mysql. Please refer to the table structure. [mysql tables](./mysql/resources.sql)
 1. docker image
 ```bash
 [root@VM-0-16-centos multi_resource_operator]# docker build -t multi-cluster-operator:v1 .
