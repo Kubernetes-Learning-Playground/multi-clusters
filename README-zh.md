@@ -232,7 +232,7 @@ tencent2        multiclusterresource-deployment default         1       1       
 
 ### 部署应用
 注：项目依赖 mysql，推荐使用  mariadb:10.5 镜像，依赖配置在 [deploy.yaml](./deploy/deploy.yaml) args 字段中设置。
-注：部署前需要先创建 mysql 对应的库与表，表结构可参考 [mysql 表结构](./mysql/resources.sql)
+注：部署前需要先创建 mysql 对应的库与表，表结构可参考 [mysql 表结构](./mysql/resources.sql)，已经使用 go-migrate 实现自动化创建表功能。
 1. docker 镜像
 ```bash
 [root@VM-0-16-centos multi_resource_operator]# docker build -t multi-cluster-operator:v1 .

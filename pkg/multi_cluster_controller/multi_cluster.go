@@ -134,6 +134,15 @@ func (mc *MultiClusterHandler) InitClusterToDB(db *gorm.DB) error {
 			c = store.NewCluster(k, false)
 		}
 
+		// FIXME: 目前默认集群状态永远只有 "Running"，不会有状态切换
+		// 预计要定时轮询巡检特定节点集群是否正常
+		/*
+			[root@VM-0-16-centos ~]# kubectl-multicluster list clusters
+			集群名称	状态   	是否为主集群
+			tencent1	Running	false
+			tencent2	Running	false
+			tencent4	Running	true
+		*/
 		err := db.Clauses(clause.OnConflict{
 			Columns: []clause.Column{{Name: "name"}},
 			DoUpdates: clause.Assignments(

@@ -3,6 +3,7 @@ package util
 import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"os"
 	"strings"
 )
 
@@ -79,4 +80,13 @@ func RemoveItem(list []string, item string) []string {
 		}
 	}
 	return list
+}
+
+// GetWd 获取工作目录
+func GetWd() string {
+	wd := os.Getenv("WORK_DIR")
+	if wd == "" {
+		wd, _ = os.Getwd()
+	}
+	return wd
 }
