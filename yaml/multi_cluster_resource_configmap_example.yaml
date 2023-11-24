@@ -1,0 +1,26 @@
+apiVersion: mulitcluster.practice.com/v1alpha1
+kind: MultiClusterResource
+metadata:
+  name: mydeployment.configmap
+  namespace: default
+spec:
+  # 模版：填写k8s 原生资源
+  template:
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: multiclusterresource-configmap
+      namespace: default
+    data:
+      example.property.1: hello
+      example.property.2: world
+      example.property.file: |-
+        property.1=value-1
+        property.2=value-2
+        property.3=value-3
+  # 可自行填写多个集群
+  placement:
+    clusters:
+      - name: tencent1
+      - name: tencent2
+      - name: tencent4

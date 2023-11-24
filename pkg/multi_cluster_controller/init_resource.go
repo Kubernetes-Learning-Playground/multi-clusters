@@ -1,7 +1,7 @@
 package multi_cluster_controller
 
 import (
-	"github.com/practice/multi_resource/pkg/multi_cluster_controller/helpers"
+	"context"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/client-go/kubernetes"
@@ -88,8 +88,14 @@ func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 	}
 
 	// 直接 apply crd
-	_, err = helpers.K8sApply(jsonBytes, DefaultRestConfig, *DefaultRestMapper)
+	//_, err = helpers.K8sApply(jsonBytes, DefaultRestConfig, *DefaultRestMapper)
+	//if err != nil {
+	//	klog.Fatal(err)
+	//}
+
+	err = mc.KubectlClientMap[mc.MasterCluster].Apply(context.Background(), jsonBytes)
 	if err != nil {
 		klog.Fatal(err)
 	}
+
 }

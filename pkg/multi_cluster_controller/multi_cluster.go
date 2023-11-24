@@ -6,6 +6,7 @@ import (
 	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/caches"
 	"github.com/practice/multi_resource/pkg/config"
+	"github.com/practice/multi_resource/pkg/kubectl_client"
 	"github.com/practice/multi_resource/pkg/store"
 	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
@@ -34,6 +35,7 @@ type MultiClusterHandler struct {
 	// 用于缓存需要的多集群信息，key:集群名，config 中定义 value:由各集群初始化后的对象
 	RestConfigMap      map[string]*rest.Config
 	DynamicClientMap   map[string]dynamic.Interface
+	KubectlClientMap   map[string]*kubectl_client.KubectlClient
 	RestMapperMap      map[string]*meta.RESTMapper
 	InformerFactoryMap map[string]dynamicinformer.DynamicSharedInformerFactory
 	HandlerMap         map[string]*caches.ResourceHandler
@@ -69,6 +71,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 		DynamicClientMap:   map[string]dynamic.Interface{},
 		InformerFactoryMap: map[string]dynamicinformer.DynamicSharedInformerFactory{},
 		HandlerMap:         map[string]*caches.ResourceHandler{},
+		KubectlClientMap:   map[string]*kubectl_client.KubectlClient{},
 	}
 
 	// 遍历
@@ -85,7 +88,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 			restMapper := k8sConfig.NewRestMapperOrDie()
 			// 初始化回调处理函数
 			handler := caches.NewResourceHandler(db, *restMapper, v.MetaData.ClusterName)
-
+			kubectlClient := kubectl_client.NewKubectlManagerOrDie(restConfig)
 			// 获取资源哪些资源对象
 			for _, vv := range v.MetaData.Resources {
 				gvr := util.ParseIntoGvr(vv.RType, "/")
@@ -101,6 +104,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 			core.DynamicClientMap[v.MetaData.ClusterName] = dyclient
 			core.RestConfigMap[v.MetaData.ClusterName] = restConfig
 			core.RestMapperMap[v.MetaData.ClusterName] = restMapper
+			core.KubectlClientMap[v.MetaData.ClusterName] = kubectlClient
 		}
 	}
 

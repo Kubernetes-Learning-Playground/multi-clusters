@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
-	"github.com/practice/multi_resource/pkg/multi_cluster_controller/helpers"
 	"github.com/practice/multi_resource/pkg/util"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -152,7 +151,7 @@ func (mc *MultiClusterHandler) setResourceFinalizer(res *v1alpha1.MultiClusterRe
 }
 
 // resourceDeleteBySlice 由传入的 list 删除资源对象，用于更新操作时使用
-func (mc *MultiClusterHandler) resourceDeleteBySlice(res *v1alpha1.MultiClusterResource, clusters []string) error {
+func (mc *MultiClusterHandler) resourceDeleteBySlice(ctx context.Context, res *v1alpha1.MultiClusterResource, clusters []string) error {
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
 	obj.SetUnstructuredContent(tpl)
@@ -163,8 +162,12 @@ func (mc *MultiClusterHandler) resourceDeleteBySlice(res *v1alpha1.MultiClusterR
 	}
 	// 遍历获取 restConfig 并删除
 	for _, c := range clusters {
-		if cfg, ok := mc.RestConfigMap[c]; ok {
-			err := helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
+		if _, ok := mc.RestConfigMap[c]; ok {
+			//err := helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
+			//if err != nil {
+			//	return err
+			//}
+			err := mc.KubectlClientMap[c].Delete(ctx, b, false)
 			if err != nil {
 				return err
 			}
@@ -188,11 +191,15 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 	deletedClusters := make([]string, 0)
 
 	for _, c := range clusters {
-		if cfg, ok := mc.RestConfigMap[c]; ok {
-			err = helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
+		if _, ok := mc.RestConfigMap[c]; ok {
+			err = mc.KubectlClientMap[c].Delete(context.Background(), b, false)
 			if err != nil {
 				return err
 			}
+			//err = helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
+			//if err != nil {
+			//	return err
+			//}
 			deletedClusters = append(deletedClusters, c)
 		}
 	}
@@ -220,17 +227,26 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 
 	// 区分需要对哪些集群进行 apply
 	if len(clusters) == 0 {
-		_, err = helpers.K8sApply(b, DefaultRestConfig, *DefaultRestMapper)
+		//_, err = helpers.K8sApply(b, DefaultRestConfig, *DefaultRestMapper)
+		//if err != nil {
+		//	return err
+		//}
+		err = mc.KubectlClientMap[mc.MasterCluster].Apply(context.Background(), b)
 		if err != nil {
 			return err
 		}
 	} else {
 		for _, c := range clusters {
-			if cfg, ok := mc.RestConfigMap[c]; ok {
-				_, err = helpers.K8sApply(b, cfg, *mc.RestMapperMap[c])
+			if _, ok := mc.RestConfigMap[c]; ok {
+				err = mc.KubectlClientMap[c].Apply(context.Background(), b)
 				if err != nil {
 					return err
 				}
+
+				//_, err = helpers.K8sApply(b, cfg, *mc.RestMapperMap[c])
+				//if err != nil {
+				//	return err
+				//}
 			}
 		}
 	}

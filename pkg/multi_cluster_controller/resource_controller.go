@@ -51,7 +51,7 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	// 如果 Finalizer 字段改变，
 	// 代表可能是需要进行特定集群的删除资源操作
 	if isChange {
-		err = mc.resourceDeleteBySlice(rr, forDelete)
+		err = mc.resourceDeleteBySlice(ctx, rr, forDelete)
 		if err != nil {
 			mc.Logger.Error(err, "delete slice multi-cluster-resource: ", rr.GetName()+"/"+rr.GetNamespace(), " failed")
 			mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "DeleteFailed", fmt.Sprintf("resourceDeleteBySlice %s fail", rr.Name))

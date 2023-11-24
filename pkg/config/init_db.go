@@ -47,6 +47,7 @@ func (dbc *DbConfig) InitDBOrDie() *gorm.DB {
 	db.SetMaxIdleConns(10)
 	db.SetMaxOpenConns(20)
 
+	// 执行 migrate
 	db1, _ := sql.Open("mysql", dsn)
 	// 关闭数据库连接
 	defer db1.Close()

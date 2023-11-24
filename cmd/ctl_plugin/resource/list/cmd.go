@@ -12,8 +12,8 @@ var (
 func init() {
 
 	ListCmd = &cobra.Command{
-		Use:     "list [flags]",
-		Short:   "list [flags]",
+		Use:     "list resource [flags]",
+		Short:   "list resource [flags]",
 		Example: "list resources",
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 {
