@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/store/model"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -16,10 +16,10 @@ type WrapWithCluster struct {
 // ListWrapWithCluster 从数据库获取查询结果
 func (list *ListService) ListWrapWithCluster(name, namespace, cluster string, labels map[string]string, gvr schema.GroupVersionResource,
 	limit int) ([]WrapWithCluster, error) {
-	ret := make([]store.Resources, 0)
+	ret := make([]model.Resources, 0)
 
 	// gvr 一定会传入
-	db := list.DB.Model(&store.Resources{}).
+	db := list.DB.Model(&model.Resources{}).
 		Where("`group`=?", gvr.Group).
 		Where("version=?", gvr.Version).
 		Where("resource=?", gvr.Resource)

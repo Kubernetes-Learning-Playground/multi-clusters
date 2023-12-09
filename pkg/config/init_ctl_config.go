@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/practice/multi_resource/pkg/options"
 	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 
 // CreateCtlFile 创建命令行工具需要的配置文件
 // 默认在 "~/.multi-cluster-operator/config" 中配置
-func CreateCtlFile(opt *Options) {
+func CreateCtlFile(opt *options.ServerOptions) {
 	// 获取用户的 Home 目录
 	homeDir, err := os.UserHomeDir()
 	if err != nil {

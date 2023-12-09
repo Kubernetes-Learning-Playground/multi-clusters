@@ -22,14 +22,15 @@ type DbConfig struct {
 	Database string
 }
 
-func NewDbConfig(opt *Options) *DbConfig {
-	return &DbConfig{
-		User:     opt.User,
-		Password: opt.Password,
-		Endpoint: opt.Endpoint,
-		Database: opt.Database,
-	}
-}
+//
+//func NewDbConfig(opt *Options) *DbConfig {
+//	return &DbConfig{
+//		User:     opt.User,
+//		Password: opt.Password,
+//		Endpoint: opt.Endpoint,
+//		Database: opt.Database,
+//	}
+//}
 
 func (dbc *DbConfig) InitDBOrDie() *gorm.DB {
 

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/store/model"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -16,10 +16,10 @@ type ListService struct {
 // List 从数据库获取查询结果
 func (list *ListService) List(name, namespace, cluster string, labels map[string]string, gvr schema.GroupVersionResource,
 	limit int) ([]runtime.Object, error) {
-	ret := make([]store.Resources, 0)
+	ret := make([]model.Resources, 0)
 
 	// gvr 一定会传入
-	db := list.DB.Model(&store.Resources{}).
+	db := list.DB.Model(&model.Resources{}).
 		Where("`group`=?", gvr.Group).
 		Where("version=?", gvr.Version).
 		Where("resource=?", gvr.Resource)
@@ -69,11 +69,11 @@ func (list *ListService) List(name, namespace, cluster string, labels map[string
 }
 
 // ListCluster 从数据库获取查询集群结果
-func (list *ListService) ListCluster(name string, limit int) ([]store.Cluster, error) {
-	ret := make([]store.Cluster, 0)
+func (list *ListService) ListCluster(name string, limit int) ([]model.Cluster, error) {
+	ret := make([]model.Cluster, 0)
 
 	// gvr 一定会传入
-	db := list.DB.Model(&store.Cluster{})
+	db := list.DB.Model(&model.Cluster{})
 
 	// 其他查询字段自由传入
 
@@ -90,7 +90,7 @@ func (list *ListService) ListCluster(name string, limit int) ([]store.Cluster, e
 		return nil, err
 	}
 
-	objList := make([]store.Cluster, len(ret))
+	objList := make([]model.Cluster, len(ret))
 	for i, res := range ret {
 		objList[i] = res
 	}

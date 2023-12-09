@@ -3,7 +3,7 @@ package caches
 import (
 	"context"
 	"github.com/practice/multi_resource/pkg/caches/workqueue"
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/store/model"
 	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -59,7 +59,7 @@ func (r *ResourceHandler) Start(ctx context.Context) {
 // handleObject 处理 work queue 传入对象
 func (r *ResourceHandler) handleObject(obj *workqueue.QueueResource) error {
 	//klog.Infof("[%s] handler [%s] object from work queue\n", r.clusterName, obj.EventType)
-	res, err := store.NewResource(obj.Object, r.RestMapper, r.clusterName)
+	res, err := model.NewResource(obj.Object, r.RestMapper, r.clusterName)
 	if err != nil {
 		klog.Errorf("new resource [%s] object error: %s\n", obj.EventType, err)
 		return err

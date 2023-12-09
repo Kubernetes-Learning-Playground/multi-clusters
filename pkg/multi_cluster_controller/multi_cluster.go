@@ -7,7 +7,7 @@ import (
 	"github.com/practice/multi_resource/pkg/caches"
 	"github.com/practice/multi_resource/pkg/config"
 	"github.com/practice/multi_resource/pkg/kubectl_client"
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/store/model"
 	"github.com/practice/multi_resource/pkg/util"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -130,12 +130,12 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 func (mc *MultiClusterHandler) InitClusterToDB(db *gorm.DB) error {
 
 	for k, _ := range mc.HandlerMap {
-		var c *store.Cluster
+		var c *model.Cluster
 		// 如果 k 跟 MasterCluster 字段相同，认定此集群是 master 集群
 		if k == mc.MasterCluster {
-			c = store.NewCluster(k, true)
+			c = model.NewCluster(k, true)
 		} else {
-			c = store.NewCluster(k, false)
+			c = model.NewCluster(k, false)
 		}
 
 		// FIXME: 目前默认集群状态永远只有 "Running"，不会有状态切换

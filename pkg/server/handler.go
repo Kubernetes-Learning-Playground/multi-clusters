@@ -1,8 +1,8 @@
-package httpserver
+package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/practice/multi_resource/pkg/httpserver/service"
+	"github.com/practice/multi_resource/pkg/server/service"
 	"github.com/practice/multi_resource/pkg/util"
 	"strconv"
 )
@@ -85,4 +85,3 @@ func (r *ResourceController) ListCluster(c *gin.Context) {
 	c.JSON(200, list)
 	return
 }
-

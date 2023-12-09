@@ -12,15 +12,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/klog/v2"
 	"strings"
 
 	"sort"
 )
-
-type Placement struct {
-	Clusters []string `json:"clusters"`
-}
 
 // getPlacementClusters 从 crd 获取需要下发到哪些集群
 func (mc *MultiClusterHandler) getPlacementClusters(res *v1alpha1.MultiClusterResource) []string {
@@ -196,10 +191,6 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 			if err != nil {
 				return err
 			}
-			//err = helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
-			//if err != nil {
-			//	return err
-			//}
 			deletedClusters = append(deletedClusters, c)
 		}
 	}
@@ -227,10 +218,7 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 
 	// 区分需要对哪些集群进行 apply
 	if len(clusters) == 0 {
-		//_, err = helpers.K8sApply(b, DefaultRestConfig, *DefaultRestMapper)
-		//if err != nil {
-		//	return err
-		//}
+
 		err = mc.KubectlClientMap[mc.MasterCluster].Apply(context.Background(), b)
 		if err != nil {
 			return err
@@ -242,11 +230,6 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 				if err != nil {
 					return err
 				}
-
-				//_, err = helpers.K8sApply(b, cfg, *mc.RestMapperMap[c])
-				//if err != nil {
-				//	return err
-				//}
 			}
 		}
 	}
@@ -298,13 +281,11 @@ func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource)
 			if dyclient, ok := mc.DynamicClientMap[c.Cluster]; ok {
 				b, err := json.Marshal(c.Action)
 				if err != nil {
-					klog.Fatal("ddd", err)
 					return errors.Wrap(err, "patch action marshal error")
 				}
 				_, err = dyclient.Resource(gvr).Namespace(obj.GetNamespace()).
 					Patch(context.Background(), obj.GetName(), types.JSONPatchType, b, metav1.PatchOptions{})
 				if err != nil {
-					klog.Fatal(err)
 					return errors.Wrap(err, "patch to api-server error")
 				}
 			}
