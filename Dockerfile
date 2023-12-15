@@ -17,15 +17,17 @@ RUN go mod download
 COPY pkg/ pkg/
 COPY cmd/ cmd/
 COPY resources/ resources/
+COPY migrations/ migrations/
 COPY config.yaml config.yaml
 
 # build
 RUN CGO_ENABLED=0 go build \
-    -a -o multi-cluster-operator cmd/main.go
+    -a -o multi-cluster-operator cmd/server/main.go
 
 FROM alpine:3.13
 WORKDIR /app
 
 USER root
 COPY --from=builder --chown=root:root /app/multi-cluster-operator .
+COPY --from=builder --chown=root:root /app/migrations .
 ENTRYPOINT ["./multi-cluster-operator"]

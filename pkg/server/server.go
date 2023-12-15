@@ -7,6 +7,7 @@ import (
 	"github.com/practice/multi_resource/pkg/server/service"
 	"github.com/practice/multi_resource/pkg/store"
 	"gorm.io/gorm"
+	"k8s.io/klog/v2"
 	"net/http"
 	"net/http/pprof"
 
@@ -23,11 +24,10 @@ type Server struct {
 }
 
 func NewServer(addr int, tls *tls.Config) *Server {
-	fmt.Printf(":%v\n", addr)
 	s := &http.Server{
 		Addr: fmt.Sprintf(":%v", addr),
 	}
-
+	klog.Infof("http server port: %v\n", addr)
 	if tls != nil {
 		s.TLSConfig = tls
 	}
@@ -61,9 +61,9 @@ func (s *Server) router(db *gorm.DB) http.Handler {
 	r := gin.New()
 	r.Use(gin.Recovery())
 
-	//r.NoRoute(func(c *gin.Context) {
-	//	core.WriteResponse(c, errno.ParseCoder(errno.ErrUnknown.Error()), nil)
-	//})
+	r.NoRoute(func(c *gin.Context) {
+		c.JSON(http.StatusNotFound, gin.H{"message": "Not Found"})
+	})
 
 	RR = &ResourceController{
 		ListService: &service.ListService{

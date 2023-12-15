@@ -29,13 +29,15 @@ func (o *Options) Flags() cliflag.NamedFlagSets {
 
 	logs.AddGoFlags(flag.CommandLine)
 
+	// 入参解析
 	o.Server.AddFlags(fss.FlagSet("server"))
 	o.MySQL.AddFlags(fss.FlagSet("mysql"))
 	return fss
 }
 
+// Complete 完成入参配置赋值
 func (o *Options) Complete() error {
-
+	// TODO: 需要实现配置项赋值
 	if err := o.Server.Complete(); err != nil {
 		return err
 	}

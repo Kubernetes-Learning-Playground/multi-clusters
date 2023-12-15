@@ -16,7 +16,7 @@ func NewServerCommand() *cobra.Command {
 	opts := options.NewOptions()
 
 	cmd := &cobra.Command{
-		Use: "go-server",
+		Use: "multi-clusters-server",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliflag.PrintFlags(cmd.Flags())
 
@@ -51,6 +51,7 @@ func NewServerCommand() *cobra.Command {
 	return cmd
 }
 
+// run 启动 http server + operator manager
 func run(opts *options.Options) error {
 	// 1. 初始化 db 实例
 	mysqlClient, err := opts.MySQL.NewClient()
@@ -64,12 +65,13 @@ func run(opts *options.Options) error {
 		return err
 	}
 
+	// 3. 注入 db factory
 	server.InjectStoreFactory(mysqlClient)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 创建 .multi-cluster-operator config 文件
+	// 4. 创建 .multi-cluster-operator config 文件
 	config.CreateCtlFile(opts.Server)
 
 	mch, err := multi_cluster_controller.NewMultiClusterHandlerFromConfig(opts.Server.ConfigPath, mysqlClient.GetDB())
@@ -82,10 +84,10 @@ func run(opts *options.Options) error {
 		klog.Fatal(err)
 	}
 
-	// 启动多集群 handler
+	// 5. 启动多集群 handler
 	mch.StartWorkQueueHandler(ctx)
 
-	// 启动 operator 管理器
+	// 6. 启动 operator 管理器
 	go func() {
 		defer util.HandleCrash()
 		klog.Info("operator manager start...")
@@ -94,5 +96,6 @@ func run(opts *options.Options) error {
 		}
 	}()
 
+	// 7. 启动 http server
 	return server.Start(mysqlClient.GetDB())
 }

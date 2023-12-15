@@ -31,14 +31,14 @@ func NewMySQLOptions() *MySQLOptions {
 }
 
 func (o *MySQLOptions) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&o.Host, "db-endpoint", "127.0.0.1",
-		"MySQL service host address. Default to 127.0.0.1.")
+	fs.StringVar(&o.Host, "db-endpoint", "127.0.0.1:3306",
+		"MySQL service host address and port. Default to 127.0.0.1:3306.")
 	fs.StringVar(&o.Username, "db-user", "root",
 		"Username for access to mysql service. Default to root.")
 	fs.StringVar(&o.Password, "db-password", "1234567",
 		"Password for access to mysql. Default to 1234567.")
 	fs.StringVar(&o.Database, "db-database", "testdb",
-		"Database name for the server to use. Default to empty.")
+		"Database name for the server to use. Default to testdb.")
 
 	fs.IntVar(&o.MaxIdleConnections, "mysql-max-idle-connections", 100,
 		"Maximum idle connections allowed to connect to mysql. Default to 100.")
@@ -48,12 +48,48 @@ func (o *MySQLOptions) AddFlags(fs *pflag.FlagSet) {
 		"Maximum connection life time allowed to connect to mysql. Default to 10s.")
 }
 
+// Complete TODO: 实现赋值逻辑
 func (o *MySQLOptions) Complete() error {
 	return nil
 }
 
+// Validate 验证逻辑
 func (o *MySQLOptions) Validate() []error {
 	var errs []error
+	// 验证 Host 字段是否为空
+	if o.Host == "" {
+		errs = append(errs, fmt.Errorf("MySQL host address is required"))
+	}
+
+	// 验证 Username 字段是否为空
+	if o.Username == "" {
+		errs = append(errs, fmt.Errorf("MySQL username is required"))
+	}
+
+	// 验证 Password 字段是否为空
+	if o.Password == "" {
+		errs = append(errs, fmt.Errorf("MySQL password is required"))
+	}
+
+	// 验证 Database 字段是否为空
+	if o.Database == "" {
+		errs = append(errs, fmt.Errorf("MySQL database name is required"))
+	}
+
+	// 验证 MaxIdleConnections 字段是否为正数
+	if o.MaxIdleConnections <= 0 {
+		errs = append(errs, fmt.Errorf("MySQL max idle connections must be a positive number"))
+	}
+
+	// 验证 MaxOpenConnections 字段是否为正数
+	if o.MaxOpenConnections <= 0 {
+		errs = append(errs, fmt.Errorf("MySQL max open connections must be a positive number"))
+	}
+
+	// 验证 MaxConnectionLifeTime 字段是否为正数
+	if o.MaxConnectionLifeTime <= 0 {
+		errs = append(errs, fmt.Errorf("MySQL max connection life time must be a positive duration"))
+	}
 	return errs
 }
 

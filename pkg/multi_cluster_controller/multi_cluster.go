@@ -127,6 +127,7 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 }
 
 // InitClusterToDB 初始化集群实例到数据库
+// FIXME: 目前只有 config.yaml 中配置的集群才会加入，没有动态加入的功能
 func (mc *MultiClusterHandler) InitClusterToDB(db *gorm.DB) error {
 
 	for k, _ := range mc.HandlerMap {

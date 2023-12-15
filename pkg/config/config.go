@@ -1,8 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"github.com/go-yaml/yaml"
+	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 	"os"
 )
@@ -15,25 +15,25 @@ func NewConfig() *Config {
 	return &Config{}
 }
 
-func loadConfigFile(path string) []byte {
+func loadConfigFile(path string) ([]byte, error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		klog.Error("read file error: ", err)
-		return nil
+		return nil, err
 	}
-	return b
+	return b, nil
 }
 
 func BuildConfig(path string) (*Config, error) {
 	config := NewConfig()
-	if b := loadConfigFile(path); b != nil {
+	if b, err := loadConfigFile(path); b != nil {
 		err := yaml.Unmarshal(b, config)
 		if err != nil {
 			return nil, err
 		}
 		return config, err
 	} else {
-		return nil, fmt.Errorf("load config file error")
+		return nil, errors.Wrap(err, "load config file error")
 	}
 }
 
