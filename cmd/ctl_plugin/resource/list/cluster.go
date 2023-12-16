@@ -5,7 +5,7 @@ import (
 	"github.com/goccy/go-json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/practice/multi_resource/pkg/store/model"
 	"log"
 	"os"
 )
@@ -17,7 +17,7 @@ func Clusters(name string) error {
 		m["name"] = name
 	}
 
-	rr := make([]*store.Cluster, 0)
+	rr := make([]*model.Cluster, 0)
 	url := fmt.Sprintf("http://localhost:%v/v1/list_cluster", common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {

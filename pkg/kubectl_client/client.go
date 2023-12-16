@@ -42,9 +42,9 @@ const DefaultDecoderBufferSize = 1024
 
 // KubectlClient
 type KubectlClient struct {
-	dynamicClient   dynamic.Interface
-	discoveryClient discovery.DiscoveryInterface
-	mapper          meta.RESTMapper
+	DynamicClient   dynamic.Interface
+	DiscoveryClient discovery.DiscoveryInterface
+	Mapper          meta.RESTMapper
 }
 
 func NewKubectlManagerOrDie(config *rest.Config) *KubectlClient {
@@ -65,9 +65,9 @@ func NewKubectlManagerOrDie(config *rest.Config) *KubectlClient {
 	}
 
 	return &KubectlClient{
-		dynamicClient:   dynamicClient,
-		discoveryClient: discoveryClient,
-		mapper:          mapper,
+		DynamicClient:   dynamicClient,
+		DiscoveryClient: discoveryClient,
+		Mapper:          mapper,
 	}
 }
 
@@ -212,7 +212,7 @@ func (o *KubectlClient) applyUnstructured(ctx context.Context, unstructuredObj u
 		return nil, err
 	}
 
-	mapping, err := o.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	mapping, err := o.Mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -223,9 +223,9 @@ func (o *KubectlClient) applyUnstructured(ctx context.Context, unstructuredObj u
 		if unstructuredObj.GetNamespace() == "" {
 			unstructuredObj.SetNamespace("default")
 		}
-		client = o.dynamicClient.Resource(mapping.Resource).Namespace(unstructuredObj.GetNamespace())
+		client = o.DynamicClient.Resource(mapping.Resource).Namespace(unstructuredObj.GetNamespace())
 	} else {
-		client = o.dynamicClient.Resource(mapping.Resource)
+		client = o.DynamicClient.Resource(mapping.Resource)
 	}
 
 	// 需要对比 "last-applied-configuration" annotation 字段用
@@ -333,7 +333,7 @@ func (o *KubectlClient) deleteUnstructured(ctx context.Context, unstructuredObj 
 		return err
 	}
 
-	mapping, err := o.mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
+	mapping, err := o.Mapper.RESTMapping(gvk.GroupKind(), gvk.Version)
 	if err != nil {
 		return err
 	}
@@ -344,9 +344,9 @@ func (o *KubectlClient) deleteUnstructured(ctx context.Context, unstructuredObj 
 		if unstructuredObj.GetNamespace() == "" {
 			unstructuredObj.SetNamespace("default")
 		}
-		client = o.dynamicClient.Resource(mapping.Resource).Namespace(unstructuredObj.GetNamespace())
+		client = o.DynamicClient.Resource(mapping.Resource).Namespace(unstructuredObj.GetNamespace())
 	} else {
-		client = o.dynamicClient.Resource(mapping.Resource)
+		client = o.DynamicClient.Resource(mapping.Resource)
 	}
 
 	// delete 操作

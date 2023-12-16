@@ -2,6 +2,7 @@ package multi_cluster_controller
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
 	"github.com/practice/multi_resource/pkg/caches"
@@ -12,12 +13,14 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
+	"log"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -89,14 +92,55 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 			// 初始化回调处理函数
 			handler := caches.NewResourceHandler(db, *restMapper, v.MetaData.ClusterName)
 			kubectlClient := kubectl_client.NewKubectlManagerOrDie(restConfig)
-			// 获取资源哪些资源对象
-			for _, vv := range v.MetaData.Resources {
-				gvr := util.ParseIntoGvr(vv.RType, "/")
-				_, err := watcher.ForResource(gvr).Informer().AddEventHandler(handler)
-				if err != nil {
-					continue
+
+			// TODO: 使用 discovery Client 解析所有 gvr
+			// 获取所有资源的 GVR
+			apiResources, err := kubectlClient.DiscoveryClient.ServerPreferredResources()
+			if err != nil {
+				log.Fatalf("Error getting API resources: %s", err)
+			}
+
+			// 输出所有资源的 GVR 加入 handler
+			for _, apiResourceList := range apiResources {
+				for _, apiResource := range apiResourceList.APIResources {
+					groupVersion, err := schema.ParseGroupVersion(apiResourceList.GroupVersion)
+					if err != nil {
+						klog.Errorf("Error parsing GroupVersion: %v", err)
+						continue
+					}
+
+					if groupVersion.Group == "" {
+						groupVersion.Group = "core"
+					}
+
+					klog.Infof("GVR: %v/%v/%v\n", groupVersion.Group, groupVersion.Version, apiResource.Name)
+
+					// FIXME: 如果不自定义，这些 group resources 会有异想不到的 bug
+					if groupVersion.Group == "metrics.k8s.io" || groupVersion.Group == "authentication.k8s.io" || groupVersion.Group == "authorization.k8s.io" {
+						continue
+					}
+					if groupVersion.Group == "policy" || groupVersion.Group == "apiextensions.k8s.io" || groupVersion.Group == "kueue.x-k8s.io" {
+						continue
+					}
+					if apiResource.Name == "bindings" || apiResource.Name == "componentstatuses" {
+						continue
+					}
+
+					gvr := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+					_, err = watcher.ForResource(gvr).Informer().AddEventHandler(handler)
+					if err != nil {
+						continue
+					}
 				}
 			}
+
+			//for _, vv := range v.MetaData.Resources {
+			//	gvr := util.ParseIntoGvr(vv.RType, "/")
+			//	_, err := watcher.ForResource(gvr).Informer().AddEventHandler(handler)
+			//	if err != nil {
+			//		continue
+			//	}
+			//}
 
 			// 存入
 			core.InformerFactoryMap[v.MetaData.ClusterName] = watcher

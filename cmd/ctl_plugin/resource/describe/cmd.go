@@ -39,12 +39,23 @@ func init() {
 			switch resource {
 			case "pods":
 				err = Pods(cluster, name, ns)
+			case "v1.pods":
+				err = Pods(cluster, name, ns)
+			case "core.v1.pods":
+				err = Pods(cluster, name, ns)
+			case "apps.v1.deployments":
+				err = Deployments(cluster, name, ns)
 			case "deployments":
 				err = Deployments(cluster, name, ns)
+			case "core.v1.configmaps":
+				err = Configmaps(cluster, name, ns)
+			case "v1.configmaps":
+				err = Configmaps(cluster, name, ns)
 			case "configmaps":
 				err = Configmaps(cluster, name, ns)
 			default:
-				return fmt.Errorf("Unsupport resource: %s\n", resource)
+				//return fmt.Errorf("Unsupport resource: %s\n", resource)
+				err = Resource(cluster, name, ns, resource)
 			}
 			return err
 		},

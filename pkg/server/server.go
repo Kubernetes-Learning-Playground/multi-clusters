@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/practice/multi_resource/pkg/server/middleware"
 	"github.com/practice/multi_resource/pkg/server/service"
 	"github.com/practice/multi_resource/pkg/store"
 	"gorm.io/gorm"
@@ -59,7 +60,7 @@ func (s *Server) Stop() {
 
 func (s *Server) router(db *gorm.DB) http.Handler {
 	r := gin.New()
-	r.Use(gin.Recovery())
+	r.Use(middleware.LogMiddleware(), gin.Recovery())
 
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Not Found"})

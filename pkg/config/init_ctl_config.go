@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/practice/multi_resource/pkg/options"
+	"io"
 	"k8s.io/klog/v2"
 	"os"
 	"path/filepath"
@@ -29,9 +30,17 @@ func CreateCtlFile(opt *options.ServerOptions) {
 	// 创建配置文件
 	configFilePath := filepath.Join(dirPath, "config")
 	configContent := fmt.Sprintf("server: %v\n", opt.CtlPort)
-	err = os.WriteFile(configFilePath, []byte(configContent), 0777)
+
+	// 创建或覆盖文件
+	file, err := os.OpenFile(configFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
 	if err != nil {
-		klog.Errorf("Failed to create config file: %v\n", err)
+		klog.Fatalf("Error creating or truncating file: %s\n", err)
+	}
+	defer file.Close()
+
+	_, err = io.WriteString(file, configContent)
+	if err != nil {
+		klog.Fatalf("Failed to create config file: %v\n", err)
 		return
 	}
 
