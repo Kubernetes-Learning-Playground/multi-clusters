@@ -22,35 +22,26 @@ clusters:                     # Cluster list
       clusterName: tencent1   # Custom cluster name
       insecure: false         # Whether to enable skipping tls certificate authentication
       configPath: /Users/zhenyu.jiang/.kube/config # kubeconfig configuration file address
-      # Resource Type
-      resources:
-        - rType: apps/v1/deployments
-        - rType: core/v1/pods
-        - rType: core/v1/configmaps
   - metadata:
       clusterName: tencent2
       insecure: true
       isMaster: true          # master cluster
-      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
-      resources:
-        - rType: apps/v1/deployments
-        - rType: core/v1/pods
-        - rType: core/v1/configmaps
+      configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config 
 ```
 ![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
 ### Multi-cluster ctl query (also supports http server query)
-Support query resources:
-- pods
-- configmaps
-- deployments
+Query for **most k8s resources** is currently supported. You need to enter the **GVR** of the resource object, such as: v1.pods or batch.v1.jobs or v1.apps.deployments
+
+- (Except for special resources, such as metrics.k8s.io authentication.k8s.io authorization.k8s.io, these groups are currently not supported)
+- The resource object of the core group supports input in two forms: core.v1.pods or v1.pods. Core can be written or not.
 
 Suffix parameter:
 - --namespace：Query by namespace. If not filled in, all namespaces will be queried by default.
 - --clusterName：Query by cluster name. If not filled in, all clusters will be queried by default.
 - --name: Query by name, if not filled in, query all by default
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list configmaps --clusterName=tencent2      
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list v1.configmaps --clusterName=tencent2      
 集群名称          NAME                                   NAMESPACE               DATA 
 tencent2        test-scheduling-config                  kube-system             1       
 tencent2        loki-loki-stack-test                    loki-stack              1       
@@ -59,13 +50,13 @@ tencent2        loki-loki-stack                         loki-stack              
 tencent2        kube-root-ca.crt                        etcd01                  1       
 tencent2        kube-root-ca.crt                        mycsi                   1  
 
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go configmaps --clusterName=tencent2 --name=coredns --namespace=kube-system       
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go v1.configmaps --clusterName=tencent2 --name=coredns --namespace=kube-system       
 集群名称        CONFIGMAP       NAMESPACE       DATA 
 tencent2        coredns         kube-system     1       
 ```
 Query multi-cluster pods resources
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list pods --clusterName=tencent2                                   
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list core.v1.pods --clusterName=tencent2                                   
 集群名称         NAME                                                    NAMESPACE               POD IP          状态             容器名                           容器静像                                                                        
 tencent2        virtual-kubelet-pod-test-bash                           default                                 Running         ngx1                            nginx:1.18-alpine                                                                    
 tencent2        testpod1                                                default                                 Running         mytest                          nginx:1.18-alpine                                                                    
@@ -80,7 +71,7 @@ tencent2        dep-test-8b4fcc97-jkkx7                                 default 
 tencent2        dep-test-8b4fcc97-wl6td                                 default                 10.244.0.128    Running         dep-test-container              nginx:1.18-alpine                                               
 
 # If clusterName is not specified, all clusters will be queried by default.
-➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list pods                           
+➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list core.v1.pods                           
 集群名称         NAME                                                            NAMESPACE                               NODE                    POD IP          状态             容器名                        容器静像                                                                            
 tencent1        patch-deployment-7877dfff-975bn                                 default                                 minikube                10.244.1.40     Running         nginx                        nginx:1.15.2                                                                            
 tencent1        patch-deployment-7877dfff-dwpxj                                 default                                 minikube                10.244.1.39     Running         nginx                        nginx:1.15.2                                                                            
@@ -102,7 +93,7 @@ tencent2        inspect-script-task-task3--1-fjxm9                              
 ```
 Query multi-cluster deployments resources
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list deployments --clusterName=cluster2
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list apps.v1.deployments --clusterName=cluster2
 集群名称         NAME                                    NAMESPACE               TOTAL   AVAILABLE       READY 
 tencent1        dep-test                                default                 5       5               5       
 tencent1        testngx                                 default                 10      10              10      
@@ -112,13 +103,14 @@ tencent1        myapi                                   default                 
 ```
 Query multi-cluster pods resource details
 ```bash
-➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go describe pods --clusterName=tencent2 --namespace=default --name=myredis-0
+➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go describe core.v1.pods --clusterName=tencent2 --namespace=default --name=myredis-0
 apiVersion: v1
 kind: Pod
 metadata:
   creationTimestamp: "2023-01-18T15:14:48Z"
   managedFields:
   - apiVersion: v1
+...  
 ```
 
 #### Deploy Ctl tool

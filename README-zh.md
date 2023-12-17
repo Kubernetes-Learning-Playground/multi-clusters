@@ -27,50 +27,43 @@ clusters:                     # 集群列表
       clusterName: tencent1   # 自定义集群名
       insecure: false         # 是否开启跳过 tls 证书认证
       configPath: /Users/zhenyu.jiang/.kube/config # kube config 配置文件地址
-      # 资源类型
-      resources:
-        - rType: apps/v1/deployments
-        - rType: core/v1/pods
-        - rType: core/v1/configmaps
   - metadata:
       clusterName: tencent2   # 自定义集群名
       insecure: true          # 是否开启跳过 tls 证书认证
       isMaster: true          # 标示主集群
       configPath: /Users/zhenyu.jiang/go/src/golanglearning/new_project/multi_resource/multiclusterresource/config1 # kube config配置文件地址
-      resources:
-        - rType: apps/v1/deployments
-        - rType: core/v1/pods
-        - rType: core/v1/configmaps
 ```
 ![](https://github.com/Kubernetes-Learning-Playground/multi-cluster-resource-storage/blob/main/image/%E6%97%A0%E6%A0%87%E9%A2%98-2023-08-10-2343.png?raw=true)
 
-### 多集群命令行查询(也支持 http server 查询)
-目前支持查询资源
-- pods
-- configmaps
-- deployments
+### 多集群命令行查询(也支持 http server 接口查询)
+目前已支持**大部分 k8s 资源**的查询，需要输入资源对象的 **GVR** 如：v1.pods or batch.v1.jobs or v1.apps.deployments
+
+- (除特殊资源外，如 metrics.k8s.io authentication.k8s.io authorization.k8s.io 这几种 group 目前不支持)
+- core 组的资源对象支持输入是 core.v1.pods or v1.pods 两种形式，core 可写可不写
 
 后缀参数：
 - --namespace：按命名空间查询，不填默认所有命名空间
 - --clusterName：按集群名查询，不填默认所有集群
 - --name: 按名称查询，不填默认所有名称
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list configmaps --clusterName=tencent2      
-集群名称          NAME                                   NAMESPACE               DATA 
-tencent2        test-scheduling-config                  kube-system             1       
-tencent2        loki-loki-stack-test                    loki-stack              1       
-tencent2        kube-root-ca.crt                        loki-stack              1       
-tencent2        loki-loki-stack                         loki-stack              1       
-tencent2        kube-root-ca.crt                        etcd01                  1       
-tencent2        kube-root-ca.crt                        mycsi                   1  
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list v1.configmaps --clusterName=tencent2
+集群名称        NAME                                    NAMESPACE       DATA 
+tencent2        multiclusterresource-configmap          default         3       
+tencent2        kube-root-ca.crt                        kube-flannel    1       
+tencent2        kube-flannel-cfg                        kube-flannel    2       
+tencent2        kube-root-ca.crt                        kube-public     1       
+tencent2        kube-root-ca.crt                        default         1       
+tencent2        kube-root-ca.crt                        kube-node-lease 1       
+tencent2        kube-root-ca.crt                        kube-system     1       
+tencent2        cluster-info                            kube-public     1  
 
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go configmaps --clusterName=tencent2 --name=coredns --namespace=kube-system       
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go v1.configmaps --clusterName=tencent2 --name=coredns --namespace=kube-system       
 集群名称        CONFIGMAP       NAMESPACE       DATA 
 tencent2        coredns         kube-system     1       
 ```
 查询多集群 pods 资源
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list pods --clusterName=tencent2                                   
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list core.v1.pods --clusterName=tencent2                                   
 集群名称         NAME                                                    NAMESPACE               POD IP          状态             容器名                           容器静像                                                                        
 tencent2        virtual-kubelet-pod-test-bash                           default                                 Running         ngx1                            nginx:1.18-alpine                                                                    
 tencent2        testpod1                                                default                                 Running         mytest                          nginx:1.18-alpine                                                                    
@@ -85,7 +78,7 @@ tencent2        dep-test-8b4fcc97-jkkx7                                 default 
 tencent2        dep-test-8b4fcc97-wl6td                                 default                 10.244.0.128    Running         dep-test-container              nginx:1.18-alpine                                               
 
 # 不指定 clusterName，默认查询所有集群
-➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list pods                           
+➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go list core.v1.pods                           
 集群名称         NAME                                                            NAMESPACE                               NODE                    POD IP          状态             容器名                        容器静像                                                                            
 tencent1        patch-deployment-7877dfff-975bn                                 default                                 minikube                10.244.1.40     Running         nginx                        nginx:1.15.2                                                                            
 tencent1        patch-deployment-7877dfff-dwpxj                                 default                                 minikube                10.244.1.39     Running         nginx                        nginx:1.15.2                                                                            
@@ -107,7 +100,7 @@ tencent2        inspect-script-task-task3--1-fjxm9                              
 ```
 查询多集群 deployments 资源
 ```bash
-➜  cmd git:(main) ✗ go run ctl_plugin/main.go list deployments --clusterName=cluster2
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go list apps.v1.deployments --clusterName=cluster2
 集群名称         NAME                                    NAMESPACE               TOTAL   AVAILABLE       READY 
 tencent1        dep-test                                default                 5       5               5       
 tencent1        testngx                                 default                 10      10              10      
@@ -117,23 +110,25 @@ tencent1        myapi                                   default                 
 ```
 查询多集群 pods 资源详细
 ```bash
-➜  multi_resource git:(main) ✗ go run cmd/ctl_plugin/main.go describe pods --clusterName=tencent2 --namespace=default --name=myredis-0
+➜  cmd git:(main) ✗ go run ctl_plugin/main.go describe core.v1.pods --clusterName=tencent2 --namespace=default --name=myredis-0
 apiVersion: v1
 kind: Pod
 metadata:
   creationTimestamp: "2023-01-18T15:14:48Z"
   managedFields:
   - apiVersion: v1
+...  
 ```
 
 #### 部署命令行工具
 ```bash
+# 进入目录并进行编译
 ➜  ctl_plugin git:(main) ✗ pwd
 /xxxxx/multi_resource/cmd/ctl_plugin
 ➜  ctl_plugin git:(main) ✗ go build -o kubectl-multicluster .
 ➜  ctl_plugin git:(main) ✗ chmod 777 kubectl-multicluster                     
 ➜  ctl_plugin git:(main) ✗ mv kubectl-multicluster ~/go/bin/ 
-➜  ~ kubectl-multicluster list pods --clusterName=tencent1 --name=multiclusterresource-deployment-75d98bb7bd-xj5z5
+➜  ~ kubectl-multicluster list v1.pods --clusterName=tencent1 --name=multiclusterresource-deployment-75d98bb7bd-xj5z5
 集群名称        NAME                                                    NAMESPACE       NODE            POD IP          状态    容器名                  容器镜像            
 tencent1        multiclusterresource-deployment-75d98bb7bd-xj5z5        default         vm-0-12-centos  10.244.29.32    Running example-container       nginx:1.19.0-alpine   
 ```

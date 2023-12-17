@@ -42,7 +42,7 @@ func main() {
 	r := common.LoadConfigFile()
 	common.ServerPort, _ = strconv.Atoi(r.Server)
 
-	// 注册
+	// 注册 list describe 命令
 	MergeFlags(list.ListCmd, describe.DescribeCmd)
 	// 只需要加入 --clusterName=xxx, --name=xxx, 其他适配 kubectl
 	list.ListCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "--clusterName=xxx")
