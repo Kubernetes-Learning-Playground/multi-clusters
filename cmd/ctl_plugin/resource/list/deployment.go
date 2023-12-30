@@ -34,7 +34,7 @@ func Deployments(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*WrapDeployment, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list_with_cluster", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list_with_cluster", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +47,7 @@ func Deployments(cluster, name, namespace string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "Name", "Namespace", "TOTAL", "Available", "Ready"}
+	content := []string{"Cluster", "Name", "Namespace", "TOTAL", "Available", "Ready"}
 
 	//if common.ShowLabels {
 	//	content = append(content, "标签")

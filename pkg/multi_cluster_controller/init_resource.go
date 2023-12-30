@@ -87,12 +87,6 @@ func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 		klog.Fatal(err)
 	}
 
-	// 直接 apply crd
-	//_, err = helpers.K8sApply(jsonBytes, DefaultRestConfig, *DefaultRestMapper)
-	//if err != nil {
-	//	klog.Fatal(err)
-	//}
-
 	err = mc.KubectlClientMap[mc.MasterCluster].Apply(context.Background(), jsonBytes)
 	if err != nil {
 		klog.Fatal(err)

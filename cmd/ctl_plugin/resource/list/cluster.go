@@ -18,7 +18,7 @@ func Clusters(name string) error {
 	}
 
 	rr := make([]*model.Cluster, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list_cluster", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list_cluster", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +31,7 @@ func Clusters(name string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "状态", "是否为主集群"}
+	content := []string{"Cluster", "Status", "IsMasterCluster"}
 
 	table.SetHeader(content)
 

@@ -29,7 +29,7 @@ func CreateCtlFile(opt *options.ServerOptions) {
 
 	// 创建配置文件
 	configFilePath := filepath.Join(dirPath, "config")
-	configContent := fmt.Sprintf("server: %v\n", opt.CtlPort)
+	configContent := fmt.Sprintf("serverIP: %v\nserverPort: %v", "localhost", opt.CtlPort)
 
 	// 创建或覆盖文件
 	file, err := os.OpenFile(configFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)

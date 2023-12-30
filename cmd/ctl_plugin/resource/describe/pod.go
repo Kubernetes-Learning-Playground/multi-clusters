@@ -4,7 +4,6 @@ import (
 	"fmt"
 	yy "github.com/ghodss/yaml"
 	"github.com/goccy/go-json"
-	"github.com/olekukonko/tablewriter"
 	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
 	v1 "k8s.io/api/core/v1"
 	"log"
@@ -28,7 +27,7 @@ func Pods(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*v1.Pod, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
@@ -51,21 +50,4 @@ func Pods(cluster, name, namespace string) error {
 
 	return nil
 
-}
-
-func TableSet(table *tablewriter.Table) *tablewriter.Table {
-	// 去掉表格线
-	table.SetAutoWrapText(false)
-	table.SetAutoFormatHeaders(true)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetBorder(false)
-	table.SetTablePadding("\t") // pad with tabs
-	table.SetNoWhiteSpace(true)
-
-	return table
 }

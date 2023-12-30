@@ -33,7 +33,7 @@ func Resources(cluster, name, namespace, gvr string) error {
 	}
 
 	rr := make([]*WrapResource, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list_with_cluster", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list_with_cluster", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +46,7 @@ func Resources(cluster, name, namespace, gvr string) error {
 
 	// 表格化呈现
 	table := tablewriter.NewWriter(os.Stdout)
-	content := []string{"集群名称", "Name", "Namespace"}
+	content := []string{"Cluster", "Name", "Namespace"}
 
 	table.SetHeader(content)
 

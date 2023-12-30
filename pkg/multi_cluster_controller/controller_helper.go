@@ -187,7 +187,7 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 
 	for _, c := range clusters {
 		if _, ok := mc.RestConfigMap[c]; ok {
-			err = mc.KubectlClientMap[c].Delete(context.Background(), b, false)
+			err = mc.KubectlClientMap[c].Delete(context.Background(), b, true)
 			if err != nil {
 				return err
 			}
@@ -204,6 +204,7 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 
 // resourceApply 资源创建
 func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource) error {
+	// TODO: OwnerReference 字段沒有設置
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
 	obj.SetUnstructuredContent(tpl)
@@ -215,7 +216,6 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 
 	// 处理 Placement
 	clusters := mc.getPlacementClusters(res)
-
 	// 区分需要对哪些集群进行 apply
 	if len(clusters) == 0 {
 
@@ -248,7 +248,6 @@ func GetGVR(obj *unstructured.Unstructured) (schema.GroupVersionResource, error)
 	if err != nil {
 		return r, fmt.Errorf("failed to get kind: %v", err)
 	}
-
 	gv, err := schema.ParseGroupVersion(apiVersion)
 	if err != nil {
 		return r, fmt.Errorf("failed to parse GroupVersion: %v", err)

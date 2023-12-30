@@ -10,6 +10,7 @@ import (
 var (
 	HttpClient *Http
 	ServerPort int
+	ServerIp   string
 )
 
 func init() {

@@ -27,7 +27,7 @@ func Deployments(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*appsv1.Deployment, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)

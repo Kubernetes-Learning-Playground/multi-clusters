@@ -33,7 +33,7 @@ func Pods(cluster, name, namespace string) error {
 	}
 
 	rr := make([]*WrapPod, 0)
-	url := fmt.Sprintf("http://localhost:%v/v1/list_with_cluster", common.ServerPort)
+	url := fmt.Sprintf("http://%v:%v/v1/list_with_cluster", common.ServerIp, common.ServerPort)
 	r, err := common.HttpClient.DoGet(url, m)
 	if err != nil {
 		log.Fatal(err)
