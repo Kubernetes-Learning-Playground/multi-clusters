@@ -4,7 +4,7 @@ import (
 	"fmt"
 	yy "github.com/ghodss/yaml"
 	"github.com/goccy/go-json"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	v1 "k8s.io/api/core/v1"
 	"log"
 )
@@ -13,7 +13,7 @@ func Pods(cluster, name, namespace string) error {
 
 	m := map[string]string{}
 	m["limit"] = "0"
-	m["gvr"] = "v1.pods"
+	m["gvr"] = "v1/pods"
 	if cluster != "" {
 		m["cluster"] = cluster
 	}

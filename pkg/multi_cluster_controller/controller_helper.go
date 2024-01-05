@@ -3,9 +3,10 @@ package multi_cluster_controller
 import (
 	"context"
 	"fmt"
+	"github.com/myoperator/multiclusteroperator/pkg/apis/multiclusterresource/v1alpha1"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"github.com/pkg/errors"
-	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
-	"github.com/practice/multi_resource/pkg/util"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -233,6 +234,7 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 			}
 		}
 	}
+	mc.EventRecorder.Event(res, corev1.EventTypeNormal, "Applied", fmt.Sprintf("resource [%v] apply successful", res.Name))
 	return nil
 }
 
@@ -290,5 +292,6 @@ func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource)
 			}
 		}
 	}
+	mc.EventRecorder.Event(res, corev1.EventTypeNormal, "Patched", fmt.Sprintf("resource [%v] patch successful", res.Name))
 	return nil
 }

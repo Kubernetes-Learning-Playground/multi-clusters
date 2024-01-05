@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/practice/multi_resource/pkg/options"
+	"github.com/myoperator/multiclusteroperator/pkg/options"
 	"io"
 	"k8s.io/klog/v2"
 	"os"

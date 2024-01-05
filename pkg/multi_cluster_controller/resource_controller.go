@@ -3,7 +3,7 @@ package multi_cluster_controller
 import (
 	"context"
 	"fmt"
-	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
+	"github.com/myoperator/multiclusteroperator/pkg/apis/multiclusterresource/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -48,6 +48,8 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	// 设置 crd 对象的 Finalizer 字段，并判断是否改变
 	forDelete, finalizer, isChange := mc.setResourceFinalizer(rr)
 
+	// TODO: 操作后，需要更新 status 字段
+
 	// 如果 Finalizer 字段改变，
 	// 代表可能是需要进行特定集群的删除资源操作
 	if isChange {
@@ -82,7 +84,6 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 		mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "PatchFailed", fmt.Sprintf("resourcePatch %s fail", rr.Name))
 		return reconcile.Result{Requeue: true, RequeueAfter: time.Second * 60}, err
 	}
-
 	mc.Logger.Info("reconcile multi-cluster-resource: ", rr.GetName()+"/"+rr.GetNamespace(), " success")
 
 	return reconcile.Result{}, nil

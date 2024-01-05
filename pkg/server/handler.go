@@ -2,8 +2,8 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/practice/multi_resource/pkg/server/service"
-	"github.com/practice/multi_resource/pkg/util"
+	"github.com/myoperator/multiclusteroperator/pkg/server/service"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"strconv"
 )
 
@@ -25,7 +25,7 @@ func (r *ResourceController) List(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := util.ParseIntoGvr(gvrParam, ".")
+	gvr := util.ParseIntoGvr(gvrParam, "/")
 	if gvr.Empty() {
 		c.JSON(400, gin.H{"error": "empty gvr input"})
 		return
@@ -55,7 +55,7 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := util.ParseIntoGvr(gvrParam, ".")
+	gvr := util.ParseIntoGvr(gvrParam, "/")
 	if gvr.Empty() {
 
 	}
@@ -67,21 +67,4 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 		return
 	}
 	c.JSON(200, list)
-}
-
-// ListCluster 查询接口
-func (r *ResourceController) ListCluster(c *gin.Context) {
-	// 接口传入参数
-	name := c.DefaultQuery("name", "")
-	limit := c.DefaultQuery("limit", "10")
-
-	ll, _ := strconv.Atoi(limit)
-	// 获取列表
-	list, err := r.ListService.ListCluster(name, ll)
-	if err != nil {
-		c.JSON(400, gin.H{"error": err})
-		return
-	}
-	c.JSON(200, list)
-	return
 }

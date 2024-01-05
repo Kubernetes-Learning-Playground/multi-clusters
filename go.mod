@@ -1,4 +1,4 @@
-module github.com/practice/multi_resource
+module github.com/myoperator/multiclusteroperator
 
 go 1.20
 

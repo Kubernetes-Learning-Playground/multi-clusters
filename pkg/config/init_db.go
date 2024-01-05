@@ -7,7 +7,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/practice/multi_resource/pkg/util"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	mysql1 "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"k8s.io/klog/v2"

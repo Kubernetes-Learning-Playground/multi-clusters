@@ -3,8 +3,8 @@ package list
 import (
 	"fmt"
 	"github.com/goccy/go-json"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	"github.com/olekukonko/tablewriter"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
 	v1 "k8s.io/api/core/v1"
 	"log"
 	"os"
@@ -19,7 +19,7 @@ func Pods(cluster, name, namespace string) error {
 
 	m := map[string]string{}
 	m["limit"] = "0"
-	m["gvr"] = "v1.pods"
+	m["gvr"] = "v1/pods"
 	if cluster != "" {
 		m["cluster"] = cluster
 	}

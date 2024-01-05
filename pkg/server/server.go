@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/practice/multi_resource/pkg/server/middleware"
-	"github.com/practice/multi_resource/pkg/server/service"
-	"github.com/practice/multi_resource/pkg/store"
+	"github.com/myoperator/multiclusteroperator/pkg/server/middleware"
+	"github.com/myoperator/multiclusteroperator/pkg/server/service"
+	"github.com/myoperator/multiclusteroperator/pkg/store"
 	"gorm.io/gorm"
 	"k8s.io/klog/v2"
 	"net/http"
@@ -83,7 +83,6 @@ func (s *Server) router(db *gorm.DB) http.Handler {
 
 	v1 := r.Group("/v1")
 	{
-		v1.GET("/list_cluster", RR.ListCluster)
 		v1.GET("/list", RR.List)
 		v1.GET("/list_with_cluster", RR.ListWrapWithCluster)
 	}

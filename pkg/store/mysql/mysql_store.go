@@ -1,8 +1,8 @@
 package mysql
 
 import (
+	"github.com/myoperator/multiclusteroperator/pkg/store"
 	"github.com/pkg/errors"
-	"github.com/practice/multi_resource/pkg/store"
 	"gorm.io/gorm"
 )
 

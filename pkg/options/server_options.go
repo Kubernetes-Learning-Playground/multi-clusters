@@ -3,8 +3,8 @@ package options
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/myoperator/multiclusteroperator/pkg/server"
 	"github.com/pkg/errors"
-	"github.com/practice/multi_resource/pkg/server"
 	"github.com/spf13/pflag"
 	"os"
 	"path/filepath"

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/practice/multi_resource/pkg/store/model"
+	"github.com/myoperator/multiclusteroperator/pkg/store/model"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

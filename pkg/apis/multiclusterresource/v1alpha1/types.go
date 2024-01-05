@@ -56,6 +56,7 @@ type MultiClusterResourceList struct {
 	Items []MultiClusterResource `json:"items"`
 }
 
+// TODO: 需要用到，存储在每个集群中的状态
 type StatusTemplate map[string]interface{}
 
 func (in *StatusTemplate) DeepCopyInto(out *StatusTemplate) {

@@ -3,8 +3,8 @@ package list
 import (
 	"fmt"
 	"github.com/goccy/go-json"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	"github.com/olekukonko/tablewriter"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
 	appsv1 "k8s.io/api/apps/v1"
 	"log"
 	"os"

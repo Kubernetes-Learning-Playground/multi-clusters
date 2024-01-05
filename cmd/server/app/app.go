@@ -2,10 +2,10 @@ package app
 
 import (
 	"context"
-	"github.com/practice/multi_resource/cmd/server/app/options"
-	"github.com/practice/multi_resource/pkg/config"
-	"github.com/practice/multi_resource/pkg/multi_cluster_controller"
-	"github.com/practice/multi_resource/pkg/util"
+	"github.com/myoperator/multiclusteroperator/cmd/server/app/options"
+	"github.com/myoperator/multiclusteroperator/pkg/config"
+	"github.com/myoperator/multiclusteroperator/pkg/multi_cluster_controller"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"github.com/spf13/cobra"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/term"
@@ -75,11 +75,6 @@ func run(opts *options.Options) error {
 	config.CreateCtlFile(opts.Server)
 
 	mch, err := multi_cluster_controller.NewMultiClusterHandlerFromConfig(opts.Server.ConfigPath, mysqlClient.GetDB())
-	if err != nil {
-		klog.Fatal(err)
-	}
-	// 初始化集群实例
-	err = mch.InitClusterToDB(mysqlClient.GetDB())
 	if err != nil {
 		klog.Fatal(err)
 	}

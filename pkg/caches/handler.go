@@ -2,9 +2,9 @@ package caches
 
 import (
 	"context"
-	"github.com/practice/multi_resource/pkg/caches/workqueue"
-	"github.com/practice/multi_resource/pkg/store/model"
-	"github.com/practice/multi_resource/pkg/util"
+	"github.com/myoperator/multiclusteroperator/pkg/caches/workqueue"
+	"github.com/myoperator/multiclusteroperator/pkg/store/model"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"

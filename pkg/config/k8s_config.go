@@ -26,14 +26,6 @@ func NewK8sConfig(path string, insecure bool) *K8sConfig {
 
 func (kc *K8sConfig) k8sRestConfigDefaultOrDie(insecure bool) *rest.Config {
 
-	// 获取本机默认kubeconfig   Linux： ~   /home/xxx
-	//home, err := os.UserHomeDir()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//defaultConfigPath := fmt.Sprintf("%s/.kube/config", home)
-
 	config, err := clientcmd.BuildConfigFromFlags("", kc.kubeconfigPath)
 	if err != nil {
 		log.Fatal(err)

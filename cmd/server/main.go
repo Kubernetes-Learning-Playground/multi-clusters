@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/practice/multi_resource/cmd/server/app"
+	"github.com/myoperator/multiclusteroperator/cmd/server/app"
 	"os"
 )
 

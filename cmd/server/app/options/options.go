@@ -2,7 +2,7 @@ package options
 
 import (
 	"flag"
-	"github.com/practice/multi_resource/pkg/options"
+	"github.com/myoperator/multiclusteroperator/pkg/options"
 
 	"github.com/pkg/errors"
 	cliflag "k8s.io/component-base/cli/flag"

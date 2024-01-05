@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/practice/multi_resource/pkg/store/model"
+	"github.com/myoperator/multiclusteroperator/pkg/store/model"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -63,36 +63,6 @@ func (list *ListService) List(name, namespace, cluster string, labels map[string
 		} else {
 			objList[i] = obj
 		}
-	}
-
-	return objList, err
-}
-
-// ListCluster 从数据库获取查询集群结果
-func (list *ListService) ListCluster(name string, limit int) ([]model.Cluster, error) {
-	ret := make([]model.Cluster, 0)
-
-	// gvr 一定会传入
-	db := list.DB.Model(&model.Cluster{})
-
-	// 其他查询字段自由传入
-
-	if name != "" {
-		db = db.Where("name=?", name)
-	}
-
-	if limit != 0 {
-		db = db.Limit(limit)
-	}
-
-	err := db.Order("create_at desc").Find(&ret).Error
-	if err != nil {
-		return nil, err
-	}
-
-	objList := make([]model.Cluster, len(ret))
-	for i, res := range ret {
-		objList[i] = res
 	}
 
 	return objList, err

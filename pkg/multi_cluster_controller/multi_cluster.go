@@ -4,19 +4,20 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
-	"github.com/practice/multi_resource/pkg/apis/multiclusterresource/v1alpha1"
-	"github.com/practice/multi_resource/pkg/caches"
-	"github.com/practice/multi_resource/pkg/config"
-	"github.com/practice/multi_resource/pkg/kubectl_client"
-	"github.com/practice/multi_resource/pkg/store/model"
-	"github.com/practice/multi_resource/pkg/util"
+	v1alpha12 "github.com/myoperator/multiclusteroperator/pkg/apis/multicluster/v1alpha1"
+	"github.com/myoperator/multiclusteroperator/pkg/apis/multiclusterresource/v1alpha1"
+	"github.com/myoperator/multiclusteroperator/pkg/caches"
+	"github.com/myoperator/multiclusteroperator/pkg/config"
+	"github.com/myoperator/multiclusteroperator/pkg/kubectl_client"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
@@ -27,7 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
-	"time"
 )
 
 // MultiClusterHandler 多集群缓存
@@ -134,6 +134,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 				}
 			}
 
+			// 废弃原本使用配置文件传入的方式
 			//for _, vv := range v.MetaData.Resources {
 			//	gvr := util.ParseIntoGvr(vv.RType, "/")
 			//	_, err := watcher.ForResource(gvr).Informer().AddEventHandler(handler)
@@ -170,41 +171,46 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 	}
 }
 
-// InitClusterToDB 初始化集群实例到数据库
+// InitClusterCRD 初始化集群资源实例
 // FIXME: 目前只有 config.yaml 中配置的集群才会加入，没有动态加入的功能
-func (mc *MultiClusterHandler) InitClusterToDB(db *gorm.DB) error {
+func (mc *MultiClusterHandler) InitClusterCRD() error {
 
-	for k, _ := range mc.HandlerMap {
-		var c *model.Cluster
-		// 如果 k 跟 MasterCluster 字段相同，认定此集群是 master 集群
-		if k == mc.MasterCluster {
-			c = model.NewCluster(k, true)
-		} else {
-			c = model.NewCluster(k, false)
+	for k, v := range mc.RestConfigMap {
+
+		c, err := kubernetes.NewForConfig(v)
+		if err != nil {
+			log.Fatal(err)
 		}
-
-		// FIXME: 目前默认集群状态永远只有 "Running"，不会有状态切换
-		// 预计要定时轮询巡检特定节点集群是否正常
-		/*
-			[root@VM-0-16-centos ~]# kubectl-multicluster list clusters
-			集群名称	状态   	是否为主集群
-			tencent1	Running	false
-			tencent2	Running	false
-			tencent4	Running	true
-		*/
-		err := db.Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "name"}},
-			DoUpdates: clause.Assignments(
-				map[string]interface{}{
-					"status":    "Running",
-					"create_at": time.Now(),
-				}),
-		}).Create(c).Error
+		version, err := c.Discovery().ServerVersion()
 		if err != nil {
 			return err
 		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		aa := &v1alpha12.MultiCluster{}
+		aa.Name = k
+		aa.Namespace = "default"
+		aa.Spec.Name = k
+		aa.Spec.Host = v.Host
+		aa.Spec.Platform = version.Platform
+		aa.Spec.Version = version.GitVersion
 
+		aa.Spec.IsMaster = "false"
+		if k == mc.MasterCluster {
+			aa.Spec.IsMaster = "true"
+		}
+
+		err = mc.Client.Create(context.Background(), aa)
+
+		if err != nil {
+			if errors.IsAlreadyExists(err) {
+				return nil
+			}
+			log.Fatal(err)
+		}
 	}
+
 	return nil
 }
 
@@ -231,12 +237,19 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 		return err
 	}
 
+	// 3. 注册进入序列化表
+	err = v1alpha12.SchemeBuilder.AddToScheme(mgr.GetScheme())
+	if err != nil {
+		mc.Logger.Error(err, "unable add schema")
+		return err
+	}
+
 	// 4. 赋值 operator 需要的 client EventRecorder
 	if mc.Client == nil {
 		mc.Client = mgr.GetClient()
 	}
 	if mc.EventRecorder == nil {
-		mc.EventRecorder = mgr.GetEventRecorderFor("multi-cluster-operator")
+		mc.EventRecorder = mgr.GetEventRecorderFor("multi-cluster-operator1")
 	}
 	mc.Logger = mgr.GetLogger()
 
@@ -245,6 +258,19 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 		Complete(mc); err != nil {
 		mc.Logger.Error(err, "unable to create manager")
 		return err
+	}
+
+	cc := NewClusterHandler(mgr.GetClient(), mgr.GetEventRecorderFor("multi-cluster-operator2"))
+	if err = builder.ControllerManagedBy(mgr).
+		For(&v1alpha12.MultiCluster{}).
+		Complete(cc); err != nil {
+		mc.Logger.Error(err, "unable to create manager")
+		return err
+	}
+
+	err = mc.InitClusterCRD()
+	if err != nil {
+		klog.Fatal(err)
 	}
 
 	// 5. 启动controller管理器

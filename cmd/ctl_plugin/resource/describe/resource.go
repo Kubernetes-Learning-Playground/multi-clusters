@@ -4,7 +4,7 @@ import (
 	"fmt"
 	yy "github.com/ghodss/yaml"
 	"github.com/goccy/go-json"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"log"
 )

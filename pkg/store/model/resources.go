@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/practice/multi_resource/pkg/util"
+	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"k8s.io/apimachinery/pkg/api/meta"

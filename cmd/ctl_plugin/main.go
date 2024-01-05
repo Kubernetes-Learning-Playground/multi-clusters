@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/practice/multi_resource/cmd/ctl_plugin/common"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/resource/describe"
-	"github.com/practice/multi_resource/cmd/ctl_plugin/resource/list"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/resource/describe"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/resource/list"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/klog/v2"
