@@ -22,8 +22,7 @@ func NewClusterHandler(client client.Client, eventRecorder record.EventRecorder)
 }
 
 func (ch *ClusterHandler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
-	// 获取 Resource
-
+	// 获取 MultiCluster 资源对象
 	rr := &v1alpha1.MultiCluster{}
 	err := ch.Get(ctx, req.NamespacedName, rr)
 	if err != nil {

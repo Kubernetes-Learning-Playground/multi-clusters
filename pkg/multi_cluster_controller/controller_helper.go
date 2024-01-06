@@ -159,10 +159,6 @@ func (mc *MultiClusterHandler) resourceDeleteBySlice(ctx context.Context, res *v
 	// 遍历获取 restConfig 并删除
 	for _, c := range clusters {
 		if _, ok := mc.RestConfigMap[c]; ok {
-			//err := helpers.K8sDelete(b, cfg, *mc.RestMapperMap[c])
-			//if err != nil {
-			//	return err
-			//}
 			err := mc.KubectlClientMap[c].Delete(ctx, b, false)
 			if err != nil {
 				return err

@@ -21,7 +21,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
-	"log"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -30,9 +29,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
 
-// MultiClusterHandler 多集群缓存
+// MultiClusterHandler 多集群控制器实例
 type MultiClusterHandler struct {
-	// masterCluster 主集群，默认使用列表第一个集群作为主集群
+	// MasterCluster 主集群，默认使用列表第一个集群作为主集群
 	// 如果配置文件有，会赋值，如果设置多个，后遍历者会把前者覆盖
 	MasterCluster string
 	// 用于缓存需要的多集群信息，key:集群名，config 中定义 value:由各集群初始化后的对象
@@ -97,7 +96,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 			// 获取所有资源的 GVR
 			apiResources, err := kubectlClient.DiscoveryClient.ServerPreferredResources()
 			if err != nil {
-				log.Fatalf("Error getting API resources: %s", err)
+				klog.Fatalf("Error getting API resources: %s", err)
 			}
 
 			// 输出所有资源的 GVR 加入 handler
@@ -179,14 +178,11 @@ func (mc *MultiClusterHandler) InitClusterCRD() error {
 
 		c, err := kubernetes.NewForConfig(v)
 		if err != nil {
-			log.Fatal(err)
+			klog.Fatal(err)
 		}
 		version, err := c.Discovery().ServerVersion()
 		if err != nil {
-			return err
-		}
-		if err != nil {
-			log.Fatal(err)
+			klog.Fatal(err)
 		}
 		aa := &v1alpha12.MultiCluster{}
 		aa.Name = k
@@ -207,7 +203,7 @@ func (mc *MultiClusterHandler) InitClusterCRD() error {
 			if errors.IsAlreadyExists(err) {
 				return nil
 			}
-			log.Fatal(err)
+			klog.Fatal(err)
 		}
 	}
 

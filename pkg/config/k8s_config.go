@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
-	"log"
 )
 
 type K8sConfig struct {
@@ -28,7 +27,7 @@ func (kc *K8sConfig) k8sRestConfigDefaultOrDie(insecure bool) *rest.Config {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kc.kubeconfigPath)
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	config.Insecure = insecure
 	return config
@@ -56,7 +55,7 @@ func (kc *K8sConfig) initClientOrDie() *kubernetes.Clientset {
 func (kc *K8sConfig) NewRestMapperOrDie() *meta.RESTMapper {
 	gr, err := restmapper.GetAPIGroupResources(kc.initClientOrDie().Discovery())
 	if err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 	mapper := restmapper.NewDiscoveryRESTMapper(gr)
 	return &mapper

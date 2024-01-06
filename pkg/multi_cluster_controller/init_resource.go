@@ -106,7 +106,6 @@ spec:
 var (
 	DefaultClientSet  kubernetes.Interface
 	DefaultRestConfig *rest.Config
-	DefaultRestMapper *meta.RESTMapper
 )
 
 func getMasterClusterRestMapper() *meta.RESTMapper {
@@ -127,7 +126,8 @@ func getMasterClusterClient() kubernetes.Interface {
 	return client
 }
 
-// applyCrdToMasterCluster 在主集群中 apply Crd
+// applyCrdToMasterCluster 在主集群中 apply CRD
+// 目前将两个 CRD 全都内置到主集群中
 func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 	if mc.MasterCluster == "" {
 		klog.Fatal("masterCluster is empty")
@@ -135,8 +135,8 @@ func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 
 	DefaultRestConfig = mc.RestConfigMap[mc.MasterCluster]
 	DefaultClientSet = getMasterClusterClient()
-	DefaultRestMapper = getMasterClusterRestMapper()
 
+	// apply 第一个
 	jsonBytes, err := yaml.ToJSON([]byte(ResourceCRD))
 	if err != nil {
 		klog.Fatal(err)
@@ -147,6 +147,7 @@ func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 		klog.Fatal(err)
 	}
 
+	// apply 第二个
 	cjsonBytes, err := yaml.ToJSON([]byte(ClusterCRD))
 	if err != nil {
 		klog.Fatal(err)

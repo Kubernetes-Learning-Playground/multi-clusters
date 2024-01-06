@@ -7,10 +7,8 @@ import (
 	"strings"
 )
 
-// ParseIntoGvr 解析并指定资源对象GVR，http server 接口使用 "." 作为分割符
+// ParseIntoGvr 解析并指定资源对象GVR，http server 接口使用 "/" 作为分割符
 // ex: "apps/v1/deployments" "core/v1/pods" "batch/v1/jobs"
-// ex："apps.v1.deployments" "v1.pods"
-// FIXME: 没考虑到 CRD 资源 例如： api.practice.com.v1alpha1.proxys 这种没办法解析
 func ParseIntoGvr(gvr, splitString string) schema.GroupVersionResource {
 	var group, version, resource string
 	gvList := strings.Split(gvr, splitString)
