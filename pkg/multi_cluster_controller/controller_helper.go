@@ -256,6 +256,7 @@ func GetGVR(obj *unstructured.Unstructured) (schema.GroupVersionResource, error)
 	return gvr, nil
 }
 
+// resourcePatch 资源 patch , 进行各集群差异化配置使用
 func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource) error {
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
@@ -265,7 +266,7 @@ func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource)
 		return err
 	}
 
-	// 处理 Placement
+	// 处理 Customize 字段
 	clusters := mc.getCustomizeClusters(res)
 
 	// 区分需要对哪些集群进行 patch

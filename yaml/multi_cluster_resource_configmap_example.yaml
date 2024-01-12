@@ -1,7 +1,7 @@
 apiVersion: mulitcluster.practice.com/v1alpha1
 kind: MultiClusterResource
 metadata:
-  name: mydeployment.configmap
+  name: myconfigmap.configmap
   namespace: default
 spec:
   # 模版：填写k8s 原生资源

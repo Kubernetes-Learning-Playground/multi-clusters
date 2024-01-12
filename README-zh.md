@@ -138,7 +138,7 @@ tencent1        multiclusterresource-deployment-75d98bb7bd-xj5z5        default 
 ```bash
 ➜  multi_resource git:(main) cat ~/.multi-cluster-operator/config 
 serverIP: localhost
-serverPort: 8899%    
+serverPort: 8899   
 ```
 
 ### 多集群下发资源

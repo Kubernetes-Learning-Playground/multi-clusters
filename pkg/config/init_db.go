@@ -22,16 +22,6 @@ type DbConfig struct {
 	Database string
 }
 
-//
-//func NewDbConfig(opt *Options) *DbConfig {
-//	return &DbConfig{
-//		User:     opt.User,
-//		Password: opt.Password,
-//		Endpoint: opt.Endpoint,
-//		Database: opt.Database,
-//	}
-//}
-
 func (dbc *DbConfig) InitDBOrDie() *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",

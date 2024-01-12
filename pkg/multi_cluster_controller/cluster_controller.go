@@ -2,7 +2,9 @@ package multi_cluster_controller
 
 import (
 	"context"
+	"fmt"
 	"github.com/myoperator/multiclusteroperator/pkg/apis/multicluster/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
@@ -32,6 +34,10 @@ func (ch *ClusterHandler) Reconcile(ctx context.Context, req reconcile.Request) 
 		return reconcile.Result{}, err
 	}
 
+	if rr.Status.Status == "Healthy" {
+		return reconcile.Result{}, nil
+	}
+
 	if !rr.DeletionTimestamp.IsZero() {
 		klog.Infof("successful delete cluster %v\n", rr.Name)
 		return reconcile.Result{}, nil
@@ -44,6 +50,8 @@ func (ch *ClusterHandler) Reconcile(ctx context.Context, req reconcile.Request) 
 	if err != nil {
 		return reconcile.Result{}, err
 	}
+
+	ch.EventRecorder.Eventf(rr, corev1.EventTypeNormal, "Create", fmt.Sprintf("create %s cluster success", rr.Spec.Name))
 
 	klog.Infof("successful reconcile...")
 	return reconcile.Result{}, nil
