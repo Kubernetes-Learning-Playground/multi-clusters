@@ -11,6 +11,7 @@ import (
 
 // CreateCtlFile 创建命令行工具需要的配置文件
 // 默认在 "~/.multi-cluster-operator/config" 中配置
+// FIXME: 容器里创建没用，考虑废弃。。。。
 func CreateCtlFile(opt *options.ServerOptions, masterClusterKubeConfigPath string) {
 	// 获取用户的 Home 目录
 	homeDir, err := os.UserHomeDir()

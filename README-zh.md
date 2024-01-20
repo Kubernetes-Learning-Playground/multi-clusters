@@ -121,6 +121,8 @@ metadata:
 ```
 
 #### 部署命令行工具
+- 编译 ctl 文件，并放入 /bin 
+- 生成配置文件 (.multi-cluster-operator/config)
 ```bash
 # 进入目录并进行编译
 ➜  ctl_plugin git:(main) ✗ pwd
@@ -133,12 +135,14 @@ metadata:
 tencent1        multiclusterresource-deployment-75d98bb7bd-xj5z5        default         vm-0-12-centos  10.244.29.32    Running example-container       nginx:1.19.0-alpine   
 ```
 
-注意：本项目默认命令行会读取 ~/.multi-cluster-operator/config 配置，项目启动时，会自动创建。
+注意：本项目默认命令行会读取 ~/.multi-cluster-operator/config 配置。
 如果使用命令行时有相关报错，可以自行处理相关部分。
 ```bash
-➜  multi_resource git:(main) cat ~/.multi-cluster-operator/config 
+[root@VM-0-16-centos ~]# cat .multi-cluster-operator/config
 serverIP: localhost
-serverPort: 8899   
+serverPort: 31888
+masterClusterKubeConfigPath: /root/.kube/config
+[root@VM-0-16-centos ~]#  
 ```
 
 ### 多集群下发资源
@@ -263,13 +267,14 @@ I0928 07:29:46.252275       1 handler.go:27] worker queue start...
 I0928 07:29:46.353115       1 main.go:85] operator manager start...
 [GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
 ```
-4. 查看命令行配置文件是否存在
+4. 生成命令行配置文件
 ```bash
-[root@VM-0-16-centos multi_resource_operator]# cd
-[root@VM-0-16-centos ~]# cd .multi-cluster-operator/
-[root@VM-0-16-centos .multi-cluster-operator]# pwd
-/root/.multi-cluster-operator
-[root@VM-0-16-centos .multi-cluster-operator]# cat config
-server: 31888
-[root@VM-0-16-centos .multi-cluster-operator]#
+[root@VM-0-16-centos multiclusteroperator]# chmod +x generate-config.sh
+[root@VM-0-16-centos multiclusteroperator]# ./generate-config.sh --ip localhost --port 31888 --config /root/.kube/config
+配置文件已生成：/root/.multi-cluster-operator/config
+[root@VM-0-16-centos ~]# cat .multi-cluster-operator/config
+serverIP: localhost
+serverPort: 31888
+masterClusterKubeConfigPath: /root/.kube/config
+[root@VM-0-16-centos ~]#
 ```
