@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	HttpClient *Http
-	ServerPort int
-	ServerIp   string
+	HttpClient     *Http
+	ServerPort     int
+	ServerIp       string
+	KubeConfigPath string
 )
 
 func init() {

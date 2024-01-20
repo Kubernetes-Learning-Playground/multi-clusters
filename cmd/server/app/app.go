@@ -71,13 +71,13 @@ func run(opts *options.Options) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 4. 创建 .multi-cluster-operator config 文件
-	config.CreateCtlFile(opts.Server)
-
 	mch, err := multi_cluster_controller.NewMultiClusterHandlerFromConfig(opts.Server.ConfigPath, mysqlClient.GetDB())
 	if err != nil {
 		klog.Fatal(err)
 	}
+
+	// 4. 创建 .multi-cluster-operator config 文件
+	config.CreateCtlFile(opts.Server, mch.MasterClusterKubeConfigPath)
 
 	// 5. 启动多集群 handler
 	mch.StartWorkQueueHandler(ctx)

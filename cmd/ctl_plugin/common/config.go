@@ -13,9 +13,10 @@ import (
 // CtlConfig 命令行配置文件
 type CtlConfig struct {
 	// Server 端口
-	ServerIP   string `yaml:"serverIP"`
-	ServerPort string `yaml:"serverPort"`
-	Token      string `yaml:"token"`
+	ServerIP                    string `yaml:"serverIP"`
+	ServerPort                  string `yaml:"serverPort"`
+	MasterClusterKubeConfigPath string `yaml:"masterClusterKubeConfigPath"`
+	Token                       string `yaml:"token"`
 }
 
 // LoadConfigFile 读取配置文件,模仿kubectl，默认在~/.multi-cluster-operator/config

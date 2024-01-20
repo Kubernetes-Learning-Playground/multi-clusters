@@ -11,7 +11,7 @@ import (
 
 // CreateCtlFile 创建命令行工具需要的配置文件
 // 默认在 "~/.multi-cluster-operator/config" 中配置
-func CreateCtlFile(opt *options.ServerOptions) {
+func CreateCtlFile(opt *options.ServerOptions, masterClusterKubeConfigPath string) {
 	// 获取用户的 Home 目录
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -29,7 +29,7 @@ func CreateCtlFile(opt *options.ServerOptions) {
 
 	// 创建配置文件
 	configFilePath := filepath.Join(dirPath, "config")
-	configContent := fmt.Sprintf("serverIP: %v\nserverPort: %v", "localhost", opt.CtlPort)
+	configContent := fmt.Sprintf("serverIP: %v\nserverPort: %v\nmasterClusterKubeConfigPath: %v", "localhost", opt.CtlPort, masterClusterKubeConfigPath)
 
 	// 创建或覆盖文件
 	file, err := os.OpenFile(configFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)

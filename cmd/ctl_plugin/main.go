@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/klog/v2"
+	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/delete"
+	cmdutil "k8s.io/kubectl/pkg/cmd/util"
+	"os"
 	"strconv"
 )
 
@@ -42,6 +46,7 @@ func main() {
 	r := common.LoadConfigFile()
 	common.ServerPort, _ = strconv.Atoi(r.ServerPort)
 	common.ServerIp = r.ServerIP
+	common.KubeConfigPath = r.MasterClusterKubeConfigPath
 	// 注册 list describe 命令
 	MergeFlags(list.ListCmd, describe.DescribeCmd)
 	// 只需要加入 --clusterName=xxx, --name=xxx, 其他适配 kubectl
@@ -52,7 +57,17 @@ func main() {
 	describe.DescribeCmd.Flags().StringVar(&common.Name, "name", "", "--name=xxx")
 
 	// 主command需要加入子command
-	mainCmd.AddCommand(list.ListCmd, describe.DescribeCmd)
+
+	// kubeconfig配置
+	kubeConfigFlags := genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag()
+	// 获取clientSet
+	kubeConfigFlags.KubeConfig = &common.KubeConfigPath
+	matchVersionKubeConfigFlags := cmdutil.NewMatchVersionFlags(kubeConfigFlags)
+	f := cmdutil.NewFactory(matchVersionKubeConfigFlags)
+	// 输出地点
+	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
+
+	mainCmd.AddCommand(list.ListCmd, describe.DescribeCmd, apply.NewCmdApply("kubectl", f, ioStreams), delete.NewCmdDelete(f, ioStreams))
 
 	err := mainCmd.Execute() // 主命令执行
 

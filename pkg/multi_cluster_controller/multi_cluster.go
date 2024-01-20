@@ -34,6 +34,8 @@ type MultiClusterHandler struct {
 	// MasterCluster 主集群，默认使用列表第一个集群作为主集群
 	// 如果配置文件有，会赋值，如果设置多个，后遍历者会把前者覆盖
 	MasterCluster string
+	// MasterClusterKubeConfigPath 主集群的 kubeconfig 路径
+	MasterClusterKubeConfigPath string
 	// 用于缓存需要的多集群信息，key:集群名，config 中定义 value:由各集群初始化后的对象
 	RestConfigMap      map[string]*rest.Config
 	DynamicClientMap   map[string]dynamic.Interface
@@ -81,6 +83,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 		// 如果有主集群
 		if v.MetaData.IsMaster {
 			core.MasterCluster = v.MetaData.ClusterName
+			core.MasterClusterKubeConfigPath = v.MetaData.ConfigPath
 		}
 		// 处理需要的初始化
 		if v.MetaData.ConfigPath != "" {
