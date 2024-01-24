@@ -73,7 +73,6 @@ func (o *ServerOptions) Validate() []error {
 	if o.CertDir != "" {
 		// 在这里可以添加更多的证书目录验证逻辑
 		// 例如，验证证书文件是否存在、证书文件格式是否正确等
-		// 这里只是一个示例，你可以根据实际需求进行自定义
 		if _, err := os.Stat(o.CertDir); os.IsNotExist(err) {
 			errs = append(errs, errors.New("Cert directory does not exist"))
 		}

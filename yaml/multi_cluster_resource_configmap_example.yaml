@@ -24,3 +24,17 @@ spec:
       - name: tencent1
       - name: tencent2
       - name: tencent4
+  customize:
+    clusters:
+      - name: tencent1
+        action:
+          # 替换 key value
+          - path: "/data/example.property.1"
+            value:
+              - "patch-configmaps-test"
+            op: "replace"
+          # 新增 key value
+          - path: "/data/cluster1test"
+            value:
+              - "patch-configmaps-test"
+            op: "add"
