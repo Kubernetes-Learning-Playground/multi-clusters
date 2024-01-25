@@ -121,7 +121,14 @@ metadata:
 ```
 
 #### 部署命令行工具
-- 编译 ctl 文件，并放入 /bin 
+- 编译 ctl 文件，并放入 /bin
+```bash
+# 注意，需要 go version 1.20 版本以上
+[root@VM-0-16-centos multiclusteroperator]# chmod +x build-ctl-command.sh
+[root@VM-0-16-centos multiclusteroperator]# ./build-ctl-command.sh
+Go build successful.
+Copied kubectl-multicluster to /usr/local/bin. 
+```
 - 生成配置文件 (.multi-cluster-operator/config)
 ```bash
 # 进入目录并进行编译

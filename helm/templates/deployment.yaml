@@ -15,7 +15,7 @@ spec:
       labels:
         app: {{ .Values.base.name }}
     spec:
-      serviceAccountName: {{ .Values.rbac.serviceAccountName }}
+      serviceAccountName: {{ .Values.rbac.serviceaccountname }}
       {{- if .Values.nodeName }}
       nodeName: {{ .Values.nodeName }}
       {{- end }}
