@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.base.name }}
+  namespace: {{ .Values.base.namespace }}
+  labels:
+    app: {{ .Values.base.name }}
+spec:
+  replicas: {{ .Values.base.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.base.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.base.name }}
+    spec:
+      serviceAccountName: {{ .Values.rbac.serviceAccountName }}
+      {{- if .Values.nodeName }}
+      nodeName: {{ .Values.nodeName }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.base.name }}
+          image: {{ .Values.base.image }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: "Release"
+              value: "1"
+          args:
+            - --db-user={{ .Values.db.dbuser | default "root" }}                     # db 用户
+            - --db-password={{ .Values.db.dbpassword | default "123456" }}               # db 用户密码
+            - --db-endpoint={{ .Values.db.dbendpoint | default "10.0.0.16:30110" }}      # db 地址
+            - --db-database={{ .Values.db.dbdatabase | default "resources" }}            # db 数据库
+            - --debug-mode={{ .Values.db.debugmode | default "true" }}                  # 模式
+            - --config={{ .Values.base.config | default "/app/file/config.yaml" }}     # 配置文件路径
+            - --ctl-port=31888                   # 命令行读取的端口
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- range .Values.MultiClusterConfiguration.volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- range .Values.MultiClusterConfiguration.volumes }}
+        - name: {{ .name }}
+          hostPath:
+            path: {{ .hostPath.path }}
+        {{- end }}

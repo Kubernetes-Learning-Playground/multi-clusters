@@ -242,6 +242,9 @@ Step 2/17 : WORKDIR /app
  ---> b1cd56e3903a
 Step 3/17 : COPY go.mod go.mod
 ```
+
+- 目前支持 helm 部署，可参考 [helm 部署](./helm)
+
 2. 部署应用 deployment
 ```bash
 [root@VM-0-16-centos multi_resource_operator]# kubectl apply -f deploy/rbac.yaml

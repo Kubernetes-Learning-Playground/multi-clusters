@@ -1,0 +1,133 @@
+# Default values for helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# 基础配置
+base:
+  # 副本数
+  replicaCount: 1
+  # 应用名或 namespace
+  name: multi-cluster-operator
+  namespace: default
+  serviceName: multi-cluster-operator-svc
+  # 镜像名
+  image: multi-cluster-operator:v1
+  # 多集群配置文件目录 (注意：在容器中的位置)
+  config: /app/file/config.yaml
+  # 是否指定调度到某个节点，如果不需要则不填
+  nodeName: vm-0-16-centos
+
+
+# 用于创建 rbac 使用
+rbac:
+  serviceaccountname: multi-cluster-operator-sa
+  namespace: default
+  clusterrole: multi-cluster-operator-clusterrole
+  clusterrolebinding: multi-cluster-operator-ClusterRoleBinding
+
+# db 配置
+db:
+  dbuser: root
+  dbpassword: 123456
+  # 注意：必须容器网络可达
+  dbendpoint: 10.0.0.16:30110
+  dbdatabase: resources
+  debugmode: false
+
+# service 配置
+service:
+  type: NodePort
+  ports:
+    - port: 8888      # 容器端口
+      nodePort: 31888 # 对外暴露的端口
+      name: server
+    - port: 29999     # 健康检查端口
+      nodePort: 31889 # 对外暴露的端口
+      name: health
+
+# 多集群中 每个集群的 kubeconfig 文件需要挂载到 pod 中
+MultiClusterConfiguration:
+  volumeMounts:
+    # 挂载不同集群的 kubeconfig，请自行修改
+    - name: tencent1
+      mountPath: /app/file/config-tencent1
+    - name: tencent2
+      mountPath: /app/file/config-tencent2
+    - name: tencent4
+      mountPath: /app/file/config-tencent4
+    # 配置文件 config.yaml
+    - name: config
+      mountPath: /app/file/config.yaml
+    - name: migrate
+      mountPath: /app/migrations
+  # 节点上的位置
+  volumes:
+    - name: tencent1
+      # 目录请自行替换
+      hostPath:
+        path: /root/multi_resource_operator/resources/config-tencent1
+    - name: tencent2
+      hostPath:
+        path: /root/multi_resource_operator/resources/config-tencent2
+    - name: tencent4
+      hostPath:
+        path: /root/multi_resource_operator/resources/config-tencent4
+    - name: config
+      hostPath:
+        path: /root/multi_resource_operator/config.yaml
+    - name: migrate
+      hostPath:
+        path: /root/multi_resource_operator/migrations
+
+
+
+imagePullSecrets: []
+nameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
