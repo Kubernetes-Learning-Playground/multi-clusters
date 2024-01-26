@@ -8,7 +8,9 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/klog/v2"
 	"k8s.io/kubectl/pkg/cmd/apply"
+	"k8s.io/kubectl/pkg/cmd/create"
 	"k8s.io/kubectl/pkg/cmd/delete"
+	"k8s.io/kubectl/pkg/cmd/edit"
 	cmdutil "k8s.io/kubectl/pkg/cmd/util"
 	"os"
 	"strconv"
@@ -67,7 +69,13 @@ func main() {
 	// 输出地点
 	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 
-	mainCmd.AddCommand(list.ListCmd, describe.DescribeCmd, apply.NewCmdApply("kubectl", f, ioStreams), delete.NewCmdDelete(f, ioStreams))
+	mainCmd.AddCommand(list.ListCmd,
+		describe.DescribeCmd,
+		apply.NewCmdApply("kubectl", f, ioStreams),
+		delete.NewCmdDelete(f, ioStreams),
+		create.NewCmdCreate(f, ioStreams),
+		edit.NewCmdEdit(f, ioStreams),
+	)
 
 	err := mainCmd.Execute() // 主命令执行
 

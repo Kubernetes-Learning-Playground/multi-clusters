@@ -23,9 +23,8 @@ func init() {
 }
 
 var (
-	Cluster       string
-	Name          string
-	CustomizePort string
+	Cluster string
+	Name    string
 )
 
 type Http struct {
