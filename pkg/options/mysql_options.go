@@ -37,8 +37,8 @@ func (o *MySQLOptions) AddFlags(fs *pflag.FlagSet) {
 		"Username for access to mysql service. Default to root.")
 	fs.StringVar(&o.Password, "db-password", "1234567",
 		"Password for access to mysql. Default to 1234567.")
-	fs.StringVar(&o.Database, "db-database", "testdb",
-		"Database name for the server to use. Default to testdb.")
+	fs.StringVar(&o.Database, "db-database", "resources",
+		"Database name for the server to use. Default to resources.")
 
 	fs.IntVar(&o.MaxIdleConnections, "mysql-max-idle-connections", 100,
 		"Maximum idle connections allowed to connect to mysql. Default to 100.")
@@ -136,6 +136,12 @@ func (o *MySQLOptions) NewClient() (store.Factory, error) {
 	)
 	if err != nil {
 		klog.Fatal(err)
+	}
+
+	err = m.Force(1)
+	if err != nil {
+		// 处理错误
+		klog.Fatalf("Error forcing database version:", err)
 	}
 
 	// 执行数据库迁移
