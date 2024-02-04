@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/go-yaml/yaml"
 	"github.com/pkg/errors"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"os"
 )
@@ -48,7 +49,8 @@ type MetaData struct {
 	// IsMaster 是否为主集群
 	IsMaster bool `json:"isMaster" yaml:"isMaster"`
 	// Resources 监听的资源对象(用于多集群查询)
-	Resources []Resource `json:"resources" yaml:"resources"`
+	Resources  []Resource `json:"resources" yaml:"resources"`
+	RestConfig *rest.Config
 }
 
 type Resource struct {

@@ -9,6 +9,7 @@ import (
 	"github.com/myoperator/multiclusteroperator/pkg/caches"
 	"github.com/myoperator/multiclusteroperator/pkg/config"
 	"github.com/myoperator/multiclusteroperator/pkg/kubectl_client"
+	"github.com/myoperator/multiclusteroperator/pkg/options/mysql"
 	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -51,6 +52,19 @@ type MultiClusterHandler struct {
 	logr.Logger
 }
 
+var GlobalMultiClusterHandler *MultiClusterHandler
+
+func init() {
+	GlobalMultiClusterHandler = &MultiClusterHandler{
+		RestConfigMap:      map[string]*rest.Config{},
+		RestMapperMap:      map[string]*meta.RESTMapper{},
+		DynamicClientMap:   map[string]dynamic.Interface{},
+		InformerFactoryMap: map[string]dynamicinformer.DynamicSharedInformerFactory{},
+		HandlerMap:         map[string]*caches.ResourceHandler{},
+		KubectlClientMap:   map[string]*kubectl_client.KubectlClient{},
+	}
+}
+
 // NewMultiClusterHandlerFromConfig 输入配置文件目录，返回MultiClusterInformer对象
 func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHandler, error) {
 	// 解析 config
@@ -62,6 +76,74 @@ func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHa
 	return newMultiClusterHandler(sysConfig.Clusters, db)
 }
 
+func AddMultiClusterHandler(cluster *config.Cluster) error {
+
+	k8sConfig := config.NewK8sConfig(cluster.MetaData.ConfigPath, cluster.MetaData.Insecure, cluster.MetaData.RestConfig, true)
+	watcher, dyclient, restConfig := k8sConfig.PatchWatchFactoryAndRestConfig()
+	// 用于 GVR GVK 转换
+	restMapper := k8sConfig.NewRestMapperOrDie()
+	// 初始化回调处理函数
+
+	handler := caches.NewResourceHandler(mysql.GlobalDB, *restMapper, cluster.MetaData.ClusterName)
+	kubectlClient := kubectl_client.NewKubectlManagerOrDie(restConfig)
+
+	// 获取所有资源的 GVR
+	apiResources, err := kubectlClient.DiscoveryClient.ServerPreferredResources()
+	if err != nil {
+		klog.Fatalf("Error getting API resources: %s", err)
+	}
+
+	// 输出所有资源的 GVR 加入 handler
+	for _, apiResourceList := range apiResources {
+		for _, apiResource := range apiResourceList.APIResources {
+			groupVersion, err := schema.ParseGroupVersion(apiResourceList.GroupVersion)
+			if err != nil {
+				klog.Errorf("Error parsing GroupVersion: %v", err)
+				continue
+			}
+
+			if groupVersion.Group == "" {
+				groupVersion.Group = "core"
+			}
+
+			klog.Infof("GVR: %v/%v/%v\n", groupVersion.Group, groupVersion.Version, apiResource.Name)
+
+			// FIXME: 如果不自定义，这些 group resources 会有异想不到的 bug
+			if groupVersion.Group == "metrics.k8s.io" || groupVersion.Group == "authentication.k8s.io" || groupVersion.Group == "authorization.k8s.io" {
+				continue
+			}
+			if groupVersion.Group == "policy" || groupVersion.Group == "apiextensions.k8s.io" || groupVersion.Group == "kueue.x-k8s.io" {
+				continue
+			}
+			if apiResource.Name == "bindings" || apiResource.Name == "componentstatuses" {
+				continue
+			}
+
+			gvr := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+			_, err = watcher.ForResource(gvr).Informer().AddEventHandler(handler)
+			if err != nil {
+				continue
+			}
+		}
+	}
+
+	klog.Infof("[%s] informer watcher start..\n", cluster.MetaData.ClusterName)
+	handler.Start(context.Background())
+	watcher.Start(wait.NeverStop)
+	watcher.WaitForCacheSync(wait.NeverStop)
+	err = GlobalMultiClusterHandler.AddClusterCRD(cluster)
+	if err != nil {
+		return err
+	}
+	GlobalMultiClusterHandler.InformerFactoryMap[cluster.MetaData.ClusterName] = watcher
+	GlobalMultiClusterHandler.HandlerMap[cluster.MetaData.ClusterName] = handler
+	GlobalMultiClusterHandler.DynamicClientMap[cluster.MetaData.ClusterName] = dyclient
+	GlobalMultiClusterHandler.RestConfigMap[cluster.MetaData.ClusterName] = restConfig
+	GlobalMultiClusterHandler.RestMapperMap[cluster.MetaData.ClusterName] = restMapper
+	GlobalMultiClusterHandler.KubectlClientMap[cluster.MetaData.ClusterName] = kubectlClient
+	return nil
+}
+
 // newMultiClusterHandler 初始化各集群需要的资源
 func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClusterHandler, error) {
 
@@ -69,14 +151,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 		panic("empty cluster...")
 	}
 
-	core := &MultiClusterHandler{
-		RestConfigMap:      map[string]*rest.Config{},
-		RestMapperMap:      map[string]*meta.RESTMapper{},
-		DynamicClientMap:   map[string]dynamic.Interface{},
-		InformerFactoryMap: map[string]dynamicinformer.DynamicSharedInformerFactory{},
-		HandlerMap:         map[string]*caches.ResourceHandler{},
-		KubectlClientMap:   map[string]*kubectl_client.KubectlClient{},
-	}
+	core := GlobalMultiClusterHandler
 
 	// 遍历
 	for _, v := range clusters {
@@ -87,7 +162,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 		}
 		// 处理需要的初始化
 		if v.MetaData.ConfigPath != "" {
-			k8sConfig := config.NewK8sConfig(v.MetaData.ConfigPath, v.MetaData.Insecure)
+			k8sConfig := config.NewK8sConfig(v.MetaData.ConfigPath, v.MetaData.Insecure, nil, false)
 			watcher, dyclient, restConfig := k8sConfig.InitWatchFactoryAndRestConfig()
 			// 用于 GVR GVK 转换
 			restMapper := k8sConfig.NewRestMapperOrDie()
@@ -199,15 +274,45 @@ func (mc *MultiClusterHandler) InitClusterCRD() error {
 		if k == mc.MasterCluster {
 			aa.Spec.IsMaster = "true"
 		}
-
 		err = mc.Client.Create(context.Background(), aa)
-
 		if err != nil {
 			if errors.IsAlreadyExists(err) {
 				return nil
 			}
 			klog.Fatal(err)
 		}
+	}
+
+	return nil
+}
+
+// AddClusterCRD 加入集群实例
+func (mc *MultiClusterHandler) AddClusterCRD(cluster *config.Cluster) error {
+
+	c, err := kubernetes.NewForConfig(cluster.MetaData.RestConfig)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	version, err := c.Discovery().ServerVersion()
+	if err != nil {
+		klog.Fatal(err)
+	}
+	aa := &v1alpha12.MultiCluster{}
+	aa.Name = cluster.MetaData.ClusterName
+	aa.Namespace = "default"
+	aa.Spec.Name = cluster.MetaData.ClusterName
+	aa.Spec.Host = cluster.MetaData.RestConfig.Host
+	aa.Spec.Platform = version.Platform
+	aa.Spec.Version = version.GitVersion
+
+	aa.Spec.IsMaster = "false"
+
+	err = mc.Client.Create(context.Background(), aa)
+	if err != nil {
+		if errors.IsAlreadyExists(err) {
+			return nil
+		}
+		klog.Fatal(err)
 	}
 
 	return nil

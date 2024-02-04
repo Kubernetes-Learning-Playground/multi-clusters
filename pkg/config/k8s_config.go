@@ -14,12 +14,22 @@ import (
 type K8sConfig struct {
 	kubeconfigPath string
 	insecure       bool
+	restconfig     *rest.Config
+	isPatch        bool
 }
 
-func NewK8sConfig(path string, insecure bool) *K8sConfig {
+func NewK8sConfig(path string, insecure bool, restconfig *rest.Config, isPatch bool) *K8sConfig {
+	if isPatch {
+		if restconfig != nil {
+			restconfig.Insecure = insecure
+		}
+	}
+
 	return &K8sConfig{
 		kubeconfigPath: path,
 		insecure:       insecure,
+		restconfig:     restconfig,
+		isPatch:        isPatch,
 	}
 }
 
@@ -44,7 +54,14 @@ func (kc *K8sConfig) initDynamicClientOrDie() dynamic.Interface {
 
 // initClient 初始化 clientSet
 func (kc *K8sConfig) initClientOrDie() *kubernetes.Clientset {
-	c, err := kubernetes.NewForConfig(kc.k8sRestConfigDefaultOrDie(kc.insecure))
+	var err error
+	var c *kubernetes.Clientset
+	if kc.isPatch {
+		c, err = kubernetes.NewForConfig(kc.restconfig)
+	} else {
+		c, err = kubernetes.NewForConfig(kc.k8sRestConfigDefaultOrDie(kc.insecure))
+	}
+
 	if err != nil {
 		klog.Fatal(err)
 	}
@@ -65,4 +82,13 @@ func (kc *K8sConfig) NewRestMapperOrDie() *meta.RESTMapper {
 func (kc *K8sConfig) InitWatchFactoryAndRestConfig() (dynamicinformer.DynamicSharedInformerFactory, dynamic.Interface, *rest.Config) {
 	dynClient := kc.initDynamicClientOrDie()
 	return dynamicinformer.NewDynamicSharedInformerFactory(dynClient, 0), dynClient, kc.k8sRestConfigDefaultOrDie(kc.insecure)
+}
+
+func (kc *K8sConfig) PatchWatchFactoryAndRestConfig() (dynamicinformer.DynamicSharedInformerFactory, dynamic.Interface, *rest.Config) {
+
+	dynClient, err := dynamic.NewForConfig(kc.restconfig)
+	if err != nil {
+		klog.Fatal(err)
+	}
+	return dynamicinformer.NewDynamicSharedInformerFactory(dynClient, 0), dynClient, kc.restconfig
 }

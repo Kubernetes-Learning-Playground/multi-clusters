@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"github.com/myoperator/multiclusteroperator/cmd/server/app/options"
-	"github.com/myoperator/multiclusteroperator/pkg/config"
 	"github.com/myoperator/multiclusteroperator/pkg/multi_cluster_controller"
 	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"github.com/spf13/cobra"
@@ -77,7 +76,7 @@ func run(opts *options.Options) error {
 	}
 
 	// 4. 创建 .multi-cluster-operator config 文件
-	config.CreateCtlFile(opts.Server, mch.MasterClusterKubeConfigPath)
+	//config.CreateCtlFile(opts.Server, mch.MasterClusterKubeConfigPath)
 
 	// 5. 启动多集群 handler
 	mch.StartWorkQueueHandler(ctx)

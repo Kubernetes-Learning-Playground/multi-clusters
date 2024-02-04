@@ -1,4 +1,4 @@
-package options
+package mysql
 
 import (
 	"database/sql"
@@ -93,6 +93,8 @@ func (o *MySQLOptions) Validate() []error {
 	return errs
 }
 
+var GlobalDB *gorm.DB
+
 // NewClient 创建 mysql 客户端并进行 migrate
 func (o *MySQLOptions) NewClient() (store.Factory, error) {
 	dsn := fmt.Sprintf(`%s:%s@tcp(%s)/%s?charset=utf8&parseTime=%t&loc=%s`,
@@ -107,6 +109,8 @@ func (o *MySQLOptions) NewClient() (store.Factory, error) {
 	if err != nil {
 		return nil, err
 	}
+	//
+	GlobalDB = db
 
 	sqlDB, err := db.DB()
 	if err != nil {

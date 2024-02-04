@@ -2,23 +2,23 @@ package options
 
 import (
 	"flag"
-	"github.com/myoperator/multiclusteroperator/pkg/options"
-
+	"github.com/myoperator/multiclusteroperator/pkg/options/mysql"
+	"github.com/myoperator/multiclusteroperator/pkg/options/server"
 	"github.com/pkg/errors"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/logs"
 )
 
 type Options struct {
-	Server *options.ServerOptions
-	MySQL  *options.MySQLOptions
+	Server *server.ServerOptions
+	MySQL  *mysql.MySQLOptions
 	Logs   *logs.Options
 }
 
 func NewOptions() *Options {
 	return &Options{
-		Server: options.NewServerOptions(),
-		MySQL:  options.NewMySQLOptions(),
+		Server: server.NewServerOptions(),
+		MySQL:  mysql.NewMySQLOptions(),
 		Logs:   logs.NewOptions(),
 	}
 }
