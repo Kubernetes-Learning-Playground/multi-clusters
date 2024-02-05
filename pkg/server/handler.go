@@ -14,6 +14,7 @@ import (
 
 type ResourceController struct {
 	ListService *service.ListService
+	JoinService *service.JoinService
 }
 
 // List 查询接口
@@ -77,6 +78,7 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 func (r *ResourceController) Join(c *gin.Context) {
 
 	cluster := c.DefaultQuery("cluster", "")
+	insecure := c.DefaultQuery("insecure", "true")
 
 	// 检查请求方法是否为 POST
 	if c.Request.Method != http.MethodPost {
@@ -113,13 +115,36 @@ func (r *ResourceController) Join(c *gin.Context) {
 		http.Error(c.Writer, fmt.Sprintf("无法获取 Kubernetes 配置: %v", err), http.StatusInternalServerError)
 		return
 	}
-
+	s, err := strconv.ParseBool(insecure)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err})
+		return
+	}
 	// 获取列表
-	err = r.ListService.Join(cluster, true, config)
+	err = r.JoinService.Join(cluster, s, config)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err})
 		return
 	}
 	c.JSON(200, gin.H{"res": "join cluster successful"})
+	return
+}
+
+func (r *ResourceController) UnJoin(c *gin.Context) {
+	cluster := c.DefaultQuery("cluster", "")
+
+	// 检查请求方法是否为 DELETE
+	if c.Request.Method != http.MethodDelete {
+		http.Error(c.Writer, "只支持 DELETE 请求", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 获取列表
+	err := r.JoinService.UnJoin(cluster)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err})
+		return
+	}
+	c.JSON(200, gin.H{"res": "unjoin cluster successful"})
 	return
 }

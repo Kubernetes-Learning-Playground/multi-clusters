@@ -10,6 +10,7 @@ import (
 	"github.com/myoperator/multiclusteroperator/pkg/config"
 	"github.com/myoperator/multiclusteroperator/pkg/kubectl_client"
 	"github.com/myoperator/multiclusteroperator/pkg/options/mysql"
+	"github.com/myoperator/multiclusteroperator/pkg/store/model"
 	"github.com/myoperator/multiclusteroperator/pkg/util"
 	"gorm.io/gorm"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -106,8 +107,6 @@ func AddMultiClusterHandler(cluster *config.Cluster) error {
 				groupVersion.Group = "core"
 			}
 
-			klog.Infof("GVR: %v/%v/%v\n", groupVersion.Group, groupVersion.Version, apiResource.Name)
-
 			// FIXME: 如果不自定义，这些 group resources 会有异想不到的 bug
 			if groupVersion.Group == "metrics.k8s.io" || groupVersion.Group == "authentication.k8s.io" || groupVersion.Group == "authorization.k8s.io" {
 				continue
@@ -141,6 +140,31 @@ func AddMultiClusterHandler(cluster *config.Cluster) error {
 	GlobalMultiClusterHandler.RestConfigMap[cluster.MetaData.ClusterName] = restConfig
 	GlobalMultiClusterHandler.RestMapperMap[cluster.MetaData.ClusterName] = restMapper
 	GlobalMultiClusterHandler.KubectlClientMap[cluster.MetaData.ClusterName] = kubectlClient
+	return nil
+}
+
+func DeleteMultiClusterHandlerByClusterName(clusterName string) error {
+	// 限制：不能删除主集群
+	if clusterName == GlobalMultiClusterHandler.MasterCluster {
+		return fmt.Errorf("cannot delete master cluster")
+	}
+
+	// 1. 把 db 中有关的数据删除
+	err := model.DeleteResourcesByClusterName(mysql.GlobalDB, clusterName)
+	if err != nil {
+		return err
+	}
+	// 2. 删除 multi-cluster 资源对象
+	err = GlobalMultiClusterHandler.DeleteClusterCRD(clusterName)
+	if err != nil {
+		return err
+	}
+	// 3. 由 map 删除
+	delete(GlobalMultiClusterHandler.InformerFactoryMap, clusterName)
+	delete(GlobalMultiClusterHandler.DynamicClientMap, clusterName)
+	delete(GlobalMultiClusterHandler.RestConfigMap, clusterName)
+	delete(GlobalMultiClusterHandler.RestMapperMap, clusterName)
+	delete(GlobalMultiClusterHandler.KubectlClientMap, clusterName)
 	return nil
 }
 
@@ -190,7 +214,7 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 						groupVersion.Group = "core"
 					}
 
-					klog.Infof("GVR: %v/%v/%v\n", groupVersion.Group, groupVersion.Version, apiResource.Name)
+					//klog.Infof("GVR: %v/%v/%v\n", groupVersion.Group, groupVersion.Version, apiResource.Name)
 
 					// FIXME: 如果不自定义，这些 group resources 会有异想不到的 bug
 					if groupVersion.Group == "metrics.k8s.io" || groupVersion.Group == "authentication.k8s.io" || groupVersion.Group == "authorization.k8s.io" {
@@ -315,6 +339,18 @@ func (mc *MultiClusterHandler) AddClusterCRD(cluster *config.Cluster) error {
 		klog.Fatal(err)
 	}
 
+	return nil
+}
+
+// DeleteClusterCRD 加入集群实例
+func (mc *MultiClusterHandler) DeleteClusterCRD(clusterName string) error {
+	aa := &v1alpha12.MultiCluster{}
+	aa.Name = clusterName
+	aa.Namespace = "default"
+	err := mc.Client.Delete(context.Background(), aa)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

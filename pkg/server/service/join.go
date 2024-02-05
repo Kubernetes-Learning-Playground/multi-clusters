@@ -10,16 +10,20 @@ type JoinService struct {
 	Mch *multi_cluster_controller.MultiClusterHandler
 }
 
-func (list *ListService) Join(clusterName string, insecure bool, restConfig *rest.Config) error {
+func (join *JoinService) Join(clusterName string, insecure bool, restConfig *rest.Config) error {
 
 	cluster := &config.Cluster{
 		MetaData: config.MetaData{
 			ClusterName: clusterName,
 			IsMaster:    false,
-			Insecure:    true,
+			Insecure:    insecure,
 			RestConfig:  restConfig,
 		},
 	}
 
 	return multi_cluster_controller.AddMultiClusterHandler(cluster)
+}
+
+func (join *JoinService) UnJoin(clusterName string) error {
+	return multi_cluster_controller.DeleteMultiClusterHandlerByClusterName(clusterName)
 }

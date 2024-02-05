@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/myoperator/multiclusteroperator/pkg/multi_cluster_controller"
 	"github.com/myoperator/multiclusteroperator/pkg/server/middleware"
 	"github.com/myoperator/multiclusteroperator/pkg/server/service"
 	"github.com/myoperator/multiclusteroperator/pkg/store"
@@ -65,10 +66,12 @@ func (s *Server) router(db *gorm.DB) http.Handler {
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"message": "Not Found"})
 	})
-	fmt.Println("ji3ji3ji33")
 	RR = &ResourceController{
 		ListService: &service.ListService{
 			DB: db,
+		},
+		JoinService: &service.JoinService{
+			Mch: multi_cluster_controller.GlobalMultiClusterHandler,
 		},
 	}
 
@@ -86,6 +89,7 @@ func (s *Server) router(db *gorm.DB) http.Handler {
 		v1.GET("/list", RR.List)
 		v1.GET("/list_with_cluster", RR.ListWrapWithCluster)
 		v1.POST("/join", RR.Join)
+		v1.DELETE("/unjoin", RR.UnJoin)
 	}
 
 	return r
