@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/resource/describe"
+	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/resource/join"
 	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/resource/list"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -50,17 +51,17 @@ func main() {
 	common.ServerIp = r.ServerIP
 	common.KubeConfigPath = r.MasterClusterKubeConfigPath
 	// 注册 list describe 命令
-	MergeFlags(list.ListCmd, describe.DescribeCmd)
+	MergeFlags(list.ListCmd, describe.DescribeCmd, join.JoinCmd, join.UnJoinCmd)
 	// 只需要加入 --clusterName=xxx, --name=xxx, 其他适配 kubectl
 	list.ListCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "--clusterName=xxx")
 	list.ListCmd.Flags().StringVar(&common.Name, "name", "", "--name=xxx")
 
 	describe.DescribeCmd.Flags().StringVar(&common.Cluster, "clusterName", "", "--clusterName=xxx")
 	describe.DescribeCmd.Flags().StringVar(&common.Name, "name", "", "--name=xxx")
+	// join 命令需要 --file=xxx 上传文件
+	join.JoinCmd.Flags().StringVar(&common.File, "file", "", "--file=xxx")
 
-	// 主command需要加入子command
-
-	// kubeconfig配置
+	// kubeconfig 配置
 	kubeConfigFlags := genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag()
 	// 获取clientSet
 	kubeConfigFlags.KubeConfig = &common.KubeConfigPath
@@ -69,8 +70,11 @@ func main() {
 	// 输出地点
 	ioStreams := genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr}
 
+	// 主 Cmd 需要加入子 Cmd
 	mainCmd.AddCommand(list.ListCmd,
 		describe.DescribeCmd,
+		join.JoinCmd,
+		join.UnJoinCmd,
 		apply.NewCmdApply("kubectl", f, ioStreams),
 		delete.NewCmdDelete(f, ioStreams),
 		create.NewCmdCreate(f, ioStreams),

@@ -7,6 +7,7 @@ import (
 	"github.com/olekukonko/tablewriter"
 	v1 "k8s.io/api/core/v1"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -34,7 +35,7 @@ func Pods(cluster, name, namespace string) error {
 
 	rr := make([]*WrapPod, 0)
 	url := fmt.Sprintf("http://%v:%v/v1/list_with_cluster", common.ServerIp, common.ServerPort)
-	r, err := common.HttpClient.DoGet(url, m)
+	r, err := common.HttpClient.DoRequest(http.MethodGet, url, m, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

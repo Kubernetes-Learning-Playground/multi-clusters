@@ -64,8 +64,9 @@ func (s *Server) router(db *gorm.DB) http.Handler {
 	r.Use(middleware.LogMiddleware(), gin.Recovery())
 
 	r.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Not Found"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "Not Found handler"})
 	})
+
 	RR = &ResourceController{
 		ListService: &service.ListService{
 			DB: db,

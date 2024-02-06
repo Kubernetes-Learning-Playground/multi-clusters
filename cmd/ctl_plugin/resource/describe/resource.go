@@ -7,6 +7,7 @@ import (
 	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"log"
+	"net/http"
 )
 
 // FIXME: describe 命令可以直接解析 gvk 就好，不用特别分资源
@@ -30,7 +31,7 @@ func Resource(cluster, name, namespace, gvr string) error {
 
 	rr := make([]*unstructured.Unstructured, 0)
 	url := fmt.Sprintf("http://%v:%v/v1/list", common.ServerIp, common.ServerPort)
-	r, err := common.HttpClient.DoGet(url, m)
+	r, err := common.HttpClient.DoRequest(http.MethodGet, url, m, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

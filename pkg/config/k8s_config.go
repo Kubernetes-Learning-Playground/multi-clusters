@@ -18,6 +18,9 @@ type K8sConfig struct {
 	isPatch        bool
 }
 
+// NewK8sConfig 创建 K8sConfig 对象，
+// 其中： restconfig 对象在 init 时是 nil, 只有在动态时加入才会传入
+// isPatch 字段是用于区分是否为初始化加入还是动态加入
 func NewK8sConfig(path string, insecure bool, restconfig *rest.Config, isPatch bool) *K8sConfig {
 	if isPatch {
 		if restconfig != nil {

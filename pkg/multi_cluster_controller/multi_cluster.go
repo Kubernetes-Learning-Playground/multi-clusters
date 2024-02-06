@@ -29,6 +29,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"sync"
 )
 
 // MultiClusterHandler 多集群控制器实例
@@ -53,6 +54,7 @@ type MultiClusterHandler struct {
 	logr.Logger
 }
 
+// GlobalMultiClusterHandler 全局变量
 var GlobalMultiClusterHandler *MultiClusterHandler
 
 func init() {
@@ -77,8 +79,13 @@ func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHa
 	return newMultiClusterHandler(sysConfig.Clusters, db)
 }
 
-func AddMultiClusterHandler(cluster *config.Cluster) error {
-
+// AddMultiClusterHandler 加入集群
+func AddMultiClusterHandler(cluster *config.Cluster) (err error) {
+	defer func() {
+		if err != nil {
+			klog.Errorf("delete cluster error: ", err)
+		}
+	}()
 	k8sConfig := config.NewK8sConfig(cluster.MetaData.ConfigPath, cluster.MetaData.Insecure, cluster.MetaData.RestConfig, true)
 	watcher, dyclient, restConfig := k8sConfig.PatchWatchFactoryAndRestConfig()
 	// 用于 GVR GVK 转换
@@ -134,6 +141,11 @@ func AddMultiClusterHandler(cluster *config.Cluster) error {
 	if err != nil {
 		return err
 	}
+
+	mc := sync.Mutex{}
+	mc.Lock()
+	defer mc.Unlock()
+
 	GlobalMultiClusterHandler.InformerFactoryMap[cluster.MetaData.ClusterName] = watcher
 	GlobalMultiClusterHandler.HandlerMap[cluster.MetaData.ClusterName] = handler
 	GlobalMultiClusterHandler.DynamicClientMap[cluster.MetaData.ClusterName] = dyclient
@@ -143,14 +155,20 @@ func AddMultiClusterHandler(cluster *config.Cluster) error {
 	return nil
 }
 
-func DeleteMultiClusterHandlerByClusterName(clusterName string) error {
+func DeleteMultiClusterHandlerByClusterName(clusterName string) (err error) {
+	defer func() {
+		if err != nil {
+			klog.Errorf("delete cluster error: ", err)
+		}
+	}()
 	// 限制：不能删除主集群
 	if clusterName == GlobalMultiClusterHandler.MasterCluster {
-		return fmt.Errorf("cannot delete master cluster")
+		klog.Errorf("cannot delete master cluster")
+		return errors.NewBadRequest("cannot delete master cluster")
 	}
 
 	// 1. 把 db 中有关的数据删除
-	err := model.DeleteResourcesByClusterName(mysql.GlobalDB, clusterName)
+	err = model.DeleteResourcesByClusterName(mysql.GlobalDB, clusterName)
 	if err != nil {
 		return err
 	}
@@ -159,7 +177,12 @@ func DeleteMultiClusterHandlerByClusterName(clusterName string) error {
 	if err != nil {
 		return err
 	}
+
 	// 3. 由 map 删除
+	// 使用锁防止并发
+	mc := sync.Mutex{}
+	mc.Lock()
+	defer mc.Unlock()
 	delete(GlobalMultiClusterHandler.InformerFactoryMap, clusterName)
 	delete(GlobalMultiClusterHandler.DynamicClientMap, clusterName)
 	delete(GlobalMultiClusterHandler.RestConfigMap, clusterName)
@@ -272,12 +295,11 @@ func (mc *MultiClusterHandler) StartWorkQueueHandler(ctx context.Context) {
 	}
 }
 
-// InitClusterCRD 初始化集群资源实例
-// FIXME: 目前只有 config.yaml 中配置的集群才会加入，没有动态加入的功能
-func (mc *MultiClusterHandler) InitClusterCRD() error {
+// initClusterCRD 初始化集群资源实例
+func (mc *MultiClusterHandler) initClusterCRD() error {
 
-	for k, v := range mc.RestConfigMap {
-
+	for clusterName, v := range mc.RestConfigMap {
+		// 获取 version 版本，有多次调用的
 		c, err := kubernetes.NewForConfig(v)
 		if err != nil {
 			klog.Fatal(err)
@@ -286,19 +308,18 @@ func (mc *MultiClusterHandler) InitClusterCRD() error {
 		if err != nil {
 			klog.Fatal(err)
 		}
-		aa := &v1alpha12.MultiCluster{}
-		aa.Name = k
-		aa.Namespace = "default"
-		aa.Spec.Name = k
-		aa.Spec.Host = v.Host
-		aa.Spec.Platform = version.Platform
-		aa.Spec.Version = version.GitVersion
-
-		aa.Spec.IsMaster = "false"
-		if k == mc.MasterCluster {
-			aa.Spec.IsMaster = "true"
+		multiCluster := &v1alpha12.MultiCluster{}
+		multiCluster.Name = clusterName
+		multiCluster.Namespace = "default"
+		multiCluster.Spec.Name = clusterName
+		multiCluster.Spec.Host = v.Host
+		multiCluster.Spec.Platform = version.Platform
+		multiCluster.Spec.Version = version.GitVersion
+		multiCluster.Spec.IsMaster = "false"
+		if clusterName == mc.MasterCluster {
+			multiCluster.Spec.IsMaster = "true"
 		}
-		err = mc.Client.Create(context.Background(), aa)
+		err = mc.Client.Create(context.Background(), multiCluster)
 		if err != nil {
 			if errors.IsAlreadyExists(err) {
 				return nil
@@ -306,7 +327,6 @@ func (mc *MultiClusterHandler) InitClusterCRD() error {
 			klog.Fatal(err)
 		}
 	}
-
 	return nil
 }
 
@@ -321,17 +341,17 @@ func (mc *MultiClusterHandler) AddClusterCRD(cluster *config.Cluster) error {
 	if err != nil {
 		klog.Fatal(err)
 	}
-	aa := &v1alpha12.MultiCluster{}
-	aa.Name = cluster.MetaData.ClusterName
-	aa.Namespace = "default"
-	aa.Spec.Name = cluster.MetaData.ClusterName
-	aa.Spec.Host = cluster.MetaData.RestConfig.Host
-	aa.Spec.Platform = version.Platform
-	aa.Spec.Version = version.GitVersion
+	multiCluster := &v1alpha12.MultiCluster{}
+	multiCluster.Name = cluster.MetaData.ClusterName
+	multiCluster.Namespace = "default"
+	multiCluster.Spec.Name = cluster.MetaData.ClusterName
+	multiCluster.Spec.Host = cluster.MetaData.RestConfig.Host
+	multiCluster.Spec.Platform = version.Platform
+	multiCluster.Spec.Version = version.GitVersion
 
-	aa.Spec.IsMaster = "false"
+	multiCluster.Spec.IsMaster = "false"
 
-	err = mc.Client.Create(context.Background(), aa)
+	err = mc.Client.Create(context.Background(), multiCluster)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
 			return nil
@@ -344,11 +364,14 @@ func (mc *MultiClusterHandler) AddClusterCRD(cluster *config.Cluster) error {
 
 // DeleteClusterCRD 加入集群实例
 func (mc *MultiClusterHandler) DeleteClusterCRD(clusterName string) error {
-	aa := &v1alpha12.MultiCluster{}
-	aa.Name = clusterName
-	aa.Namespace = "default"
-	err := mc.Client.Delete(context.Background(), aa)
+	multiCluster := &v1alpha12.MultiCluster{}
+	multiCluster.Name = clusterName
+	multiCluster.Namespace = "default"
+	err := mc.Client.Delete(context.Background(), multiCluster)
 	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
 		return err
 	}
 	return nil
@@ -407,8 +430,8 @@ func (mc *MultiClusterHandler) StartOperatorManager() error {
 		mc.Logger.Error(err, "unable to create manager")
 		return err
 	}
-
-	err = mc.InitClusterCRD()
+	// 创建 cluster 对象
+	err = mc.initClusterCRD()
 	if err != nil {
 		klog.Fatal(err)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/myoperator/multiclusteroperator/cmd/ctl_plugin/common"
 	appsv1 "k8s.io/api/apps/v1"
 	"log"
+	"net/http"
 )
 
 func Deployments(cluster, name, namespace string) error {
@@ -28,7 +29,7 @@ func Deployments(cluster, name, namespace string) error {
 
 	rr := make([]*appsv1.Deployment, 0)
 	url := fmt.Sprintf("http://%v:%v/v1/list", common.ServerIp, common.ServerPort)
-	r, err := common.HttpClient.DoGet(url, m)
+	r, err := common.HttpClient.DoRequest(http.MethodGet, url, m, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

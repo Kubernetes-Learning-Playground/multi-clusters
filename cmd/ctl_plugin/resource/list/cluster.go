@@ -7,6 +7,7 @@ import (
 	"github.com/myoperator/multiclusteroperator/pkg/apis/multicluster/v1alpha1"
 	"github.com/olekukonko/tablewriter"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -29,7 +30,7 @@ func Clusters(name string) error {
 
 	rr := make([]*WrapCluster, 0)
 	url := fmt.Sprintf("http://%v:%v/v1/list_with_cluster", common.ServerIp, common.ServerPort)
-	r, err := common.HttpClient.DoGet(url, m)
+	r, err := common.HttpClient.DoRequest(http.MethodGet, url, m, nil, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
