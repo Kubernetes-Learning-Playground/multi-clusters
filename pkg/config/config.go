@@ -49,7 +49,9 @@ type MetaData struct {
 	// IsMaster 是否为主集群
 	IsMaster bool `json:"isMaster" yaml:"isMaster"`
 	// Resources 监听的资源对象(用于多集群查询)
-	Resources  []Resource `json:"resources" yaml:"resources"`
+	Resources []Resource `json:"resources" yaml:"resources"`
+	// RestConfig k8s 集群中 restConfig 对象，
+	// 只在动态加入 join 时才赋值
 	RestConfig *rest.Config
 }
 

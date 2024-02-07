@@ -42,7 +42,7 @@ type MultiClusterHandler struct {
 	// 用于缓存需要的多集群信息，key:集群名，config 中定义 value:由各集群初始化后的对象
 	RestConfigMap      map[string]*rest.Config
 	DynamicClientMap   map[string]dynamic.Interface
-	KubectlClientMap   map[string]*kubectl_client.KubectlClient
+	KubectlClientMap   map[string]*kubectl_client.KubectlManager
 	RestMapperMap      map[string]*meta.RESTMapper
 	InformerFactoryMap map[string]dynamicinformer.DynamicSharedInformerFactory
 	HandlerMap         map[string]*caches.ResourceHandler
@@ -64,7 +64,7 @@ func init() {
 		DynamicClientMap:   map[string]dynamic.Interface{},
 		InformerFactoryMap: map[string]dynamicinformer.DynamicSharedInformerFactory{},
 		HandlerMap:         map[string]*caches.ResourceHandler{},
-		KubectlClientMap:   map[string]*kubectl_client.KubectlClient{},
+		KubectlClientMap:   map[string]*kubectl_client.KubectlManager{},
 	}
 }
 
@@ -125,7 +125,10 @@ func AddMultiClusterHandler(cluster *config.Cluster) (err error) {
 				continue
 			}
 
-			gvr := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+			gvr, err := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+			if err != nil {
+				continue
+			}
 			_, err = watcher.ForResource(gvr).Informer().AddEventHandler(handler)
 			if err != nil {
 				continue
@@ -250,7 +253,10 @@ func newMultiClusterHandler(clusters []config.Cluster, db *gorm.DB) (*MultiClust
 						continue
 					}
 
-					gvr := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+					gvr, err := util.ParseIntoGvr(fmt.Sprintf("%v/%v/%v", groupVersion.Group, groupVersion.Version, apiResource.Name), "/")
+					if err != nil {
+						continue
+					}
 					_, err = watcher.ForResource(gvr).Informer().AddEventHandler(handler)
 					if err != nil {
 						continue

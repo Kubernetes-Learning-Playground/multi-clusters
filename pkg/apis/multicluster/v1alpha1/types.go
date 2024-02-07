@@ -15,19 +15,20 @@ type MultiCluster struct {
 }
 
 type ClusterSpec struct {
-	// 集群名
+	// Name 集群名
 	Name string `json:"name"`
-	// 集群地址
+	// Host 集群地址
 	Host string `json:"host"`
-	// 集群版本
+	// Version 集群版本
 	Version string `json:"version"`
-	// 平台版本
+	// Platform 平台版本
 	Platform string `json:"platform"`
-	// 是否为 master 主集群
+	// IsMaster 是否为 master 主集群
 	IsMaster string `json:"isMaster"`
 }
 
 type ClusterStatus struct {
+	// Status 集群状态
 	Status string `json:"status"`
 }
 

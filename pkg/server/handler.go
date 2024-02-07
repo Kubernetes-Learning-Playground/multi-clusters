@@ -32,7 +32,7 @@ func (r *ResourceController) List(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := util.ParseIntoGvr(gvrParam, "/")
+	gvr, _ := util.ParseIntoGvr(gvrParam, "/")
 	if gvr.Empty() {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "not found gvr"})
 		return
@@ -62,7 +62,7 @@ func (r *ResourceController) ListWrapWithCluster(c *gin.Context) {
 	}
 
 	// 解析 gvr
-	gvr := util.ParseIntoGvr(gvrParam, "/")
+	gvr, _ := util.ParseIntoGvr(gvrParam, "/")
 	if gvr.Empty() {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "not found gvr"})
 		return

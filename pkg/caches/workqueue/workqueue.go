@@ -35,7 +35,7 @@ type Queue interface {
 	SetReMaxReQueueTime(int)
 }
 
-// wq 使用限速队列实现queue接口
+// wq 使用限速队列实现 Queue 接口
 type wq struct {
 	workqueue.RateLimitingInterface
 	MaxReQueueTime int

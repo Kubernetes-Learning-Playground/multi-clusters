@@ -40,14 +40,14 @@ func init() {
 
 const DefaultDecoderBufferSize = 1024
 
-// KubectlClient
-type KubectlClient struct {
+// KubectlManager k8s 客户端
+type KubectlManager struct {
 	DynamicClient   dynamic.Interface
 	DiscoveryClient discovery.DiscoveryInterface
 	Mapper          meta.RESTMapper
 }
 
-func NewKubectlManagerOrDie(config *rest.Config) *KubectlClient {
+func NewKubectlManagerOrDie(config *rest.Config) *KubectlManager {
 
 	dynamicClient, err := dynamic.NewForConfig(config)
 	if err != nil {
@@ -64,7 +64,7 @@ func NewKubectlManagerOrDie(config *rest.Config) *KubectlClient {
 		panic(err.Error())
 	}
 
-	return &KubectlClient{
+	return &KubectlManager{
 		DynamicClient:   dynamicClient,
 		DiscoveryClient: discoveryClient,
 		Mapper:          mapper,
@@ -84,7 +84,7 @@ func ToRESTMapper(discoveryClient discovery.DiscoveryInterface) (meta.RESTMapper
 // Apply 模拟 kubectl apply 功能
 // 1. 先转为 unstructList 对象
 // 2. 遍历 apply 对象
-func (o *KubectlClient) Apply(ctx context.Context, data []byte) error {
+func (o *KubectlManager) Apply(ctx context.Context, data []byte) error {
 
 	// 解析为 unstruct 对象
 	unstructObjList, err := decode(data)
@@ -105,7 +105,7 @@ func (o *KubectlClient) Apply(ctx context.Context, data []byte) error {
 // Delete 模拟 kubectl delete 功能
 // 1. 先转为 unstructList 对象
 // 2. 遍历 delete 对象
-func (o *KubectlClient) Delete(ctx context.Context, data []byte, isNotFoundErrIgnore bool) error {
+func (o *KubectlManager) Delete(ctx context.Context, data []byte, isNotFoundErrIgnore bool) error {
 
 	// 解析为 unstruct 对象
 	unstructObjList, err := decode(data)
@@ -124,7 +124,7 @@ func (o *KubectlClient) Delete(ctx context.Context, data []byte, isNotFoundErrIg
 }
 
 // ApplyByResource 接受传入 interface{} 对象
-func (o *KubectlClient) ApplyByResource(ctx context.Context, resource interface{}) error {
+func (o *KubectlManager) ApplyByResource(ctx context.Context, resource interface{}) error {
 	data, err := json.Marshal(resource)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func (o *KubectlClient) ApplyByResource(ctx context.Context, resource interface{
 }
 
 // DeleteByResource 接受传入 interface{} 对象
-func (o *KubectlClient) DeleteByResource(ctx context.Context, resource interface{}, isNotFoundErrIgnore bool) error {
+func (o *KubectlManager) DeleteByResource(ctx context.Context, resource interface{}, isNotFoundErrIgnore bool) error {
 	data, err := json.Marshal(resource)
 	if err != nil {
 		return err
@@ -192,7 +192,7 @@ func decode(data []byte) ([]unstructured.Unstructured, error) {
 	return unstructList, nil
 }
 
-func (o *KubectlClient) applyUnstructured(ctx context.Context, unstructuredObj unstructured.Unstructured) (*unstructured.Unstructured, error) {
+func (o *KubectlManager) applyUnstructured(ctx context.Context, unstructuredObj unstructured.Unstructured) (*unstructured.Unstructured, error) {
 
 	if len(unstructuredObj.GetName()) == 0 {
 		metadata, _ := meta.Accessor(unstructuredObj)
@@ -313,7 +313,7 @@ func preparePatch(currentUnstr *unstructured.Unstructured, modified []byte, name
 	return patch, patchType, nil
 }
 
-func (o *KubectlClient) deleteUnstructured(ctx context.Context, unstructuredObj unstructured.Unstructured, isNotFoundErrIgnore bool) error {
+func (o *KubectlManager) deleteUnstructured(ctx context.Context, unstructuredObj unstructured.Unstructured, isNotFoundErrIgnore bool) error {
 
 	if len(unstructuredObj.GetName()) == 0 {
 		metadata, _ := meta.Accessor(unstructuredObj)

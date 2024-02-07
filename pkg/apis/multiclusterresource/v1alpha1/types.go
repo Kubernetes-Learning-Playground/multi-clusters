@@ -22,11 +22,21 @@ type ResourceSpec struct {
 	/*
 		  placement
 			clusters:
-			   - name: aliyun
-			   - name: huawei
+			   - name: cluster1
+			   - name: cluster2
 	*/
 	Placement DataTemplate `json:"placement,omitempty"`
 	// 差异化适配
+	/*
+	   customize:
+	     clusters:
+	       - name: cluster1
+	         action:
+	           - path: "/spec/containers/0/image"
+	             op: "replace"
+	             value:
+	               - "nginx:1.19.0-alpine"
+	*/
 	Customize Customize `json:"customize,omitempty"`
 }
 
@@ -89,5 +99,4 @@ func (in *DataTemplate) DeepCopyInto(out *DataTemplate) {
 	if err != nil {
 		return
 	}
-
 }

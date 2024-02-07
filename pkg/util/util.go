@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"os"
@@ -9,13 +10,13 @@ import (
 
 // ParseIntoGvr 解析并指定资源对象GVR，http server 接口使用 "/" 作为分割符
 // ex: "apps/v1/deployments" "core/v1/pods" "batch/v1/jobs"
-func ParseIntoGvr(gvr, splitString string) schema.GroupVersionResource {
+func ParseIntoGvr(gvr, splitString string) (schema.GroupVersionResource, error) {
 	var group, version, resource string
 	gvList := strings.Split(gvr, splitString)
 
 	// 防止越界
 	if len(gvList) < 2 {
-		panic("gvr input error, please input like format apps/v1/deployments or core/v1/multiclusterresource")
+		return schema.GroupVersionResource{}, fmt.Errorf("gvr input error, please input like format apps/v1/deployments or core/v1/multiclusterresource")
 	}
 
 	if len(gvList) == 2 {
@@ -31,7 +32,7 @@ func ParseIntoGvr(gvr, splitString string) schema.GroupVersionResource {
 
 	return schema.GroupVersionResource{
 		Group: group, Version: version, Resource: resource,
-	}
+	}, nil
 }
 
 // IsNameSpaceScope 是否 namespace 资源
