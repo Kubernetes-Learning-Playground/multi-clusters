@@ -54,7 +54,7 @@ type MultiClusterHandler struct {
 	logr.Logger
 }
 
-// GlobalMultiClusterHandler 全局变量
+// GlobalMultiClusterHandler 全局变量，用于存放多集群的客户端实例
 var GlobalMultiClusterHandler *MultiClusterHandler
 
 func init() {

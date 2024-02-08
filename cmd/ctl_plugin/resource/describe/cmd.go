@@ -12,9 +12,10 @@ var (
 func init() {
 
 	DescribeCmd = &cobra.Command{
-		Use:     "describe [flags]",
-		Short:   "describe [flags]",
-		Example: "describe resources",
+		Use: "describe resource [flags]",
+		Short: "describe <resource> --name=xxx --clusterName=xxx --namespace=xxx" +
+			" , input resource GVR, ex: core/v1/pods apps/v1/deployments, batch/v1/jobs",
+		Example: "describe core/v1/pods",
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return fmt.Errorf("Please specify a resource pods, deployments, configmaps\n")

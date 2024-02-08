@@ -28,7 +28,7 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	// 1、删除所有集群资源
 	// 2、清空 Finalizer，更新状态
 	if !rr.DeletionTimestamp.IsZero() {
-		err = mc.resourceDelete(rr)
+		err = mc.resourceDelete(ctx, rr)
 		if err != nil {
 			mc.Logger.Error(err, "delete multi-cluster-resource: ", rr.GetName()+"/"+rr.GetNamespace(), " failed")
 			mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "Delete", fmt.Sprintf("delete %s fail", rr.Name))
@@ -70,7 +70,7 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	}
 
 	// apply 操作
-	err = mc.resourceApply(rr)
+	err = mc.resourceApply(ctx, rr)
 	if err != nil {
 		mc.Logger.Error(err, "apply slice multi-cluster-resource: ", rr.GetName()+"/"+rr.GetNamespace(), " failed")
 		mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "ApplyFailed", fmt.Sprintf("resourceApply %s fail", rr.Name))
@@ -78,7 +78,7 @@ func (mc *MultiClusterHandler) Reconcile(ctx context.Context, req reconcile.Requ
 	}
 
 	// patch 操作
-	err = mc.resourcePatch(rr)
+	err = mc.resourcePatch(ctx, rr)
 	if err != nil {
 		mc.Logger.Error(err, "patch slice multi-cluster-resource: ", rr.GetName()+"/"+rr.GetNamespace(), " failed")
 		mc.EventRecorder.Event(rr, corev1.EventTypeWarning, "PatchFailed", fmt.Sprintf("resourcePatch %s fail", rr.Name))

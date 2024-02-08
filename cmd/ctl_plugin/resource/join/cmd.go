@@ -14,7 +14,7 @@ func init() {
 
 	JoinCmd = &cobra.Command{
 		Use:     "join <clusterName> [flags]",
-		Short:   "join <clusterName> [flags]",
+		Short:   "join <clusterName> --file=xxx, input kubeconfig file path",
 		Example: "join <clusterName> --file xxxxx",
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -38,7 +38,7 @@ func init() {
 
 	UnJoinCmd = &cobra.Command{
 		Use:     "unjoin <clusterName> [flags]",
-		Short:   "unjoin <clusterName> [flags]",
+		Short:   "unjoin <clusterName>, input clusterName",
 		Example: "unjoin <clusterName>",
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 {

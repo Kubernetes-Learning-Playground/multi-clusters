@@ -169,7 +169,7 @@ func (mc *MultiClusterHandler) resourceDeleteBySlice(ctx context.Context, res *v
 }
 
 // resourceDelete 删除集群内资源时使用
-func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource) error {
+func (mc *MultiClusterHandler) resourceDelete(ctx context.Context, res *v1alpha1.MultiClusterResource) error {
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
 	obj.SetUnstructuredContent(tpl)
@@ -184,7 +184,7 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 
 	for _, c := range clusters {
 		if _, ok := mc.RestConfigMap[c]; ok {
-			err = mc.KubectlClientMap[c].Delete(context.Background(), b, true)
+			err = mc.KubectlClientMap[c].Delete(ctx, b, true)
 			if err != nil {
 				return err
 			}
@@ -200,7 +200,7 @@ func (mc *MultiClusterHandler) resourceDelete(res *v1alpha1.MultiClusterResource
 }
 
 // resourceApply 资源创建
-func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource) error {
+func (mc *MultiClusterHandler) resourceApply(ctx context.Context, res *v1alpha1.MultiClusterResource) error {
 	// TODO: OwnerReference 字段沒有設置
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
@@ -216,14 +216,14 @@ func (mc *MultiClusterHandler) resourceApply(res *v1alpha1.MultiClusterResource)
 	// 区分需要对哪些集群进行 apply
 	if len(clusters) == 0 {
 
-		err = mc.KubectlClientMap[mc.MasterCluster].Apply(context.Background(), b)
+		err = mc.KubectlClientMap[mc.MasterCluster].Apply(ctx, b)
 		if err != nil {
 			return err
 		}
 	} else {
 		for _, c := range clusters {
 			if _, ok := mc.RestConfigMap[c]; ok {
-				err = mc.KubectlClientMap[c].Apply(context.Background(), b)
+				err = mc.KubectlClientMap[c].Apply(ctx, b)
 				if err != nil {
 					return err
 				}
@@ -257,7 +257,7 @@ func GetGVR(obj *unstructured.Unstructured) (schema.GroupVersionResource, error)
 }
 
 // resourcePatch 资源 patch , 进行各集群差异化配置使用
-func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource) error {
+func (mc *MultiClusterHandler) resourcePatch(ctx context.Context, res *v1alpha1.MultiClusterResource) error {
 	tpl := res.Spec.Template
 	obj := &unstructured.Unstructured{}
 	obj.SetUnstructuredContent(tpl)
@@ -282,7 +282,7 @@ func (mc *MultiClusterHandler) resourcePatch(res *v1alpha1.MultiClusterResource)
 					return errors.Wrap(err, "patch action marshal error")
 				}
 				_, err = dyclient.Resource(gvr).Namespace(obj.GetNamespace()).
-					Patch(context.Background(), obj.GetName(), types.JSONPatchType, b, metav1.PatchOptions{})
+					Patch(ctx, obj.GetName(), types.JSONPatchType, b, metav1.PatchOptions{})
 				if err != nil {
 					return errors.Wrap(err, "patch to api-server error")
 				}

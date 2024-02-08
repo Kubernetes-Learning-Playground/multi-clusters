@@ -30,8 +30,8 @@ var (
 func init() {
 	cmdMetaData = &CmdMetaData{
 		Use:     "kubectl-multicluster [flags]",
-		Short:   "kubectl-multicluster [flags]",
-		Example: "kubectl-multicluster [flags]",
+		Short:   "kubectl-multicluster, Multi-cluster command line tool",
+		Example: "kubectl-multicluster list core/v1/pods, or kubectl-multicluster describe core/v1/pods",
 	}
 }
 

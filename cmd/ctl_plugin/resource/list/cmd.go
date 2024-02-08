@@ -12,9 +12,10 @@ var (
 func init() {
 
 	ListCmd = &cobra.Command{
-		Use:     "list resource [flags]",
-		Short:   "list resource [flags]",
-		Example: "list resources",
+		Use: "list resource [flags]",
+		Short: "list <resource> --name=xxx --clusterName=xxx --namespace=xxx" +
+			" , input resource GVR, ex: core/v1/pods apps/v1/deployments, batch/v1/jobs",
+		Example: "list core/v1/pods",
 		RunE: func(c *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return fmt.Errorf("Please specify a resource pods, deployments, configmaps\n")
