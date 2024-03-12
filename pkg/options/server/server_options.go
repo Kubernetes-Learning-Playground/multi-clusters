@@ -17,6 +17,10 @@ type ServerOptions struct {
 	HealthPort int
 	CtlPort    int
 	DebugMode  bool
+
+	LeaseLockName      string // 锁名
+	LeaseLockNamespace string // 获取锁的namespace
+	LeaseLockMode      bool   // 是否为选主模式
 }
 
 func NewServerOptions() *ServerOptions {
@@ -37,6 +41,10 @@ func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
 		"The directory of cert to use, use tls.crt and tls.key as certificates. Default to disable https.")
 
 	fs.BoolVar(&o.DebugMode, "debug-mode", false, "Debug Mode")
+
+	fs.BoolVar(&o.LeaseLockMode, "lease-mode", false, "Whether to use election mode")
+	fs.StringVar(&o.LeaseLockName, "lease-name", "lease-default-name", "election lease leaselock name")
+	fs.StringVar(&o.LeaseLockNamespace, "lease-namespace", "default", "election lease leaselock namespace")
 
 }
 

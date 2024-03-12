@@ -83,7 +83,7 @@ func NewMultiClusterHandlerFromConfig(path string, db *gorm.DB) (*MultiClusterHa
 func AddMultiClusterHandler(cluster *config.Cluster) (err error) {
 	defer func() {
 		if err != nil {
-			klog.Errorf("delete cluster error: ", err)
+			klog.Errorf("add cluster error: ", err)
 		}
 	}()
 	k8sConfig := config.NewK8sConfig(cluster.MetaData.ConfigPath, cluster.MetaData.Insecure, cluster.MetaData.RestConfig, true)

@@ -4,7 +4,7 @@ metadata:
   name: multi-cluster-operator
   namespace: default
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: multi-cluster-operator
@@ -21,16 +21,24 @@ spec:
           imagePullPolicy: IfNotPresent
           # args 启动参数请自行修改
           args:
-            - --db-user=root                     # db 用户
-            - --db-password=123456               # db 用户密码
-            - --db-endpoint=10.0.0.16:30110      # db 地址
-            - --db-database=resources            # db 数据库
-            - --debug-mode=true                  # 模式
-            - --config=/app/file/config.yaml     # 配置文件路径
-            - --ctl-port=31888                   # 命令行读取的端口
+            - --db-user=root                             # db 用户
+            - --db-password=123456                       # db 用户密码
+            - --db-endpoint=10.0.0.16:30110              # db 地址
+            - --db-database=resources                    # db 数据库
+            - --debug-mode=true                          # 模式
+            - --config=/app/file/config.yaml             # 配置文件路径
+            - --ctl-port=31888                           # 命令行读取的端口
+            - --lease-name=multi-cluster-operator-lease  # 分布式锁名
+            - --lease-namespace=default                  # 分布式锁 namespace
+            - --lease-mode=true                          # 是否启动选主模式
           env:
             - name: "Release"
               value: "1"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
           volumeMounts:
             # 挂载不同集群的 kubeconfig，请自行修改
             - name: tencent1

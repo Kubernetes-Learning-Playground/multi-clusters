@@ -26,14 +26,22 @@ spec:
           env:
             - name: "Release"
               value: "1"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
           args:
-            - --db-user={{ .Values.db.dbuser | default "root" }}                     # db 用户
-            - --db-password={{ .Values.db.dbpassword | default "123456" }}               # db 用户密码
-            - --db-endpoint={{ .Values.db.dbendpoint | default "10.0.0.16:30110" }}      # db 地址
-            - --db-database={{ .Values.db.dbdatabase | default "resources" }}            # db 数据库
-            - --debug-mode={{ .Values.db.debugmode | default "true" }}                  # 模式
-            - --config={{ .Values.base.config | default "/app/file/config.yaml" }}     # 配置文件路径
-            - --ctl-port=31888                   # 命令行读取的端口
+            - --db-user={{ .Values.db.dbuser | default "root" }}                                  # db 用户
+            - --db-password={{ .Values.db.dbpassword | default "123456" }}                        # db 用户密码
+            - --db-endpoint={{ .Values.db.dbendpoint | default "10.0.0.16:30110" }}               # db 地址
+            - --db-database={{ .Values.db.dbdatabase | default "resources" }}                     # db 数据库
+            - --debug-mode={{ .Values.base.debugMode | default "true" }}                          # 模式
+            - --config={{ .Values.base.config | default "/app/file/config.yaml" }}                # 配置文件路径
+            - --lease-name={{ .Values.base.leaseName | default "multi-cluster-operator-lease" }}  # 租约名
+            - --lease-namespace={{ .Values.base.namespace | default "default" }}                  # 命名空间
+            - --lease-mode={{ .Values.base.leaseMode | default true }}                            # 是否启用租约模式
+            - --ctl-port=31888                                                                    # 命令行读取的端口
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

@@ -5,7 +5,7 @@
 # 基础配置
 base:
   # 副本数
-  replicaCount: 1
+  replicaCount: 2
   # 应用名或 namespace
   name: multi-cluster-operator
   namespace: default
@@ -16,6 +16,11 @@ base:
   config: /app/file/config.yaml
   # 是否指定调度到某个节点，如果不需要则不填
   nodeName: vm-0-16-centos
+  # 是否启动多副本选主机制
+  leaseMode: "true"
+  # 租约名
+  leaseName: multi-cluster-operator-lease
+  debugMode: "false"
 
 
 # 用于创建 rbac 使用
@@ -32,7 +37,6 @@ db:
   # 注意：必须容器网络可达
   dbendpoint: 10.0.0.16:30110
   dbdatabase: resources
-  debugmode: false
 
 # service 配置
 service:
