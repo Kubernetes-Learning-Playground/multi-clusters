@@ -2,14 +2,14 @@ package multi_cluster_controller
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/api/meta"
+	v1alpha12 "github.com/myoperator/multiclusteroperator/pkg/apis/multicluster/v1alpha1"
+	"github.com/myoperator/multiclusteroperator/pkg/apis/multiclusterresource/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/restmapper"
 	"k8s.io/klog/v2"
-
-	"log"
 )
 
 const ResourceCRD = `
@@ -108,14 +108,36 @@ var (
 	DefaultRestConfig *rest.Config
 )
 
-func getMasterClusterRestMapper() *meta.RESTMapper {
-
-	gr, err := restmapper.GetAPIGroupResources(DefaultClientSet.Discovery())
-	if err != nil {
-		log.Fatal(err)
+// CRDsInstalled checks if the CRDs are installed or not
+func checkCRDsInstalled(discovery discovery.DiscoveryInterface) bool {
+	gvs := []schema.GroupVersionKind{
+		v1alpha1.SchemeGroupVersion.WithKind(v1alpha1.MultiClusterResourceKind),
+		v1alpha1.SchemeGroupVersion.WithKind(v1alpha12.MultiClusterKind),
 	}
-	mapper := restmapper.NewDiscoveryRESTMapper(gr)
-	return &mapper
+
+	for _, gv := range gvs {
+		if !isCRDInstalled(discovery, gv) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func isCRDInstalled(discovery discovery.DiscoveryInterface, gvk schema.GroupVersionKind) bool {
+	crdList, err := discovery.ServerResourcesForGroupVersion(gvk.GroupVersion().String())
+	if err != nil {
+		klog.ErrorS(err, "resource not found", "resource", gvk)
+		return false
+	}
+
+	for _, crd := range crdList.APIResources {
+		if crd.Kind == gvk.Kind {
+			klog.InfoS("resource CRD not found", "resource", crd.Kind)
+			return true
+		}
+	}
+	return false
 }
 
 func getMasterClusterClient() kubernetes.Interface {
@@ -135,6 +157,11 @@ func (mc *MultiClusterHandler) applyCrdToMasterClusterOrDie() {
 
 	DefaultRestConfig = mc.RestConfigMap[mc.MasterCluster]
 	DefaultClientSet = getMasterClusterClient()
+
+	// check crd resource
+	if checkCRDsInstalled(DefaultClientSet.Discovery()) {
+		return
+	}
 
 	// apply 第一个
 	jsonBytes, err := yaml.ToJSON([]byte(ResourceCRD))
