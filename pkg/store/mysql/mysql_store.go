@@ -26,8 +26,8 @@ func (ds *mysqlStoreFactory) GetDB() *gorm.DB {
 
 // NewStoreFactory 创建实例
 func NewStoreFactory(db *gorm.DB) (store.Factory, error) {
-	store := &mysqlStoreFactory{
+	st := &mysqlStoreFactory{
 		db: db,
 	}
-	return store, nil
+	return st, nil
 }
