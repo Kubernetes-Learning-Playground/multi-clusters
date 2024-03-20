@@ -202,3 +202,49 @@ submariner-operator-f8b9cdbbf-h6zg6              1/1     Running             0  
 submariner-routeagent-g86fh                      0/1     Init:0/1            0          8s
 submariner-routeagent-m4n6s                      0/1     Init:0/1            0          8s
 ```
+- cluster1 与 cluster2 
+  - cluster2 中 暴露 service 提供给其他集群访问
+  - cluster1 使用域名请求 cluster2 的 service 流量
+```bash
+root@VM-0-12-ubuntu:~# kubectl --context=kind-cluster2 apply -f deploy2.yaml
+deployment.apps/nginxapp created
+service/nginxappsvc created
+root@VM-0-12-ubuntu:~#
+root@VM-0-12-ubuntu:~# subctl --context kind-cluster2 export service -n myweb nginxappsvc
+ ✓ Service exported successfully
+root@VM-0-12-ubuntu:~#  kubectl --context=kind-cluster1 apply -f client.yaml
+pod/client created
+root@VM-0-12-ubuntu:~# kubectl --context=kind-cluster1 get pods
+NAME     READY   STATUS    RESTARTS   AGE
+client   1/1     Running   0          48s
+root@VM-0-12-ubuntu:~# kubectl --context=kind-cluster1 exec -it client
+error: you must specify at least one command for the container
+root@VM-0-12-ubuntu:~# kubectl --context=kind-cluster1 exec -it client -- sh
+/ # curl nginxappsvc.myweb.svc.clusterset.local
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+/ # 
+```

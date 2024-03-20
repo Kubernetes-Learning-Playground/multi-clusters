@@ -122,6 +122,7 @@ func leaderElectionRun(opts *options.Options) error {
 func run(opts *options.Options) error {
 	// 1. 初始化 db 实例
 	mysqlClient, err := opts.MySQL.NewClient()
+
 	if err != nil {
 		return err
 	}
