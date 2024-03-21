@@ -107,13 +107,11 @@ func leaderElectionRun(opts *options.Options) error {
 		})
 
 	case false:
-
 		klog.Info("normal run...")
 		err := run(opts)
 		if err != nil {
 			return err
 		}
-
 	}
 	return nil
 }
